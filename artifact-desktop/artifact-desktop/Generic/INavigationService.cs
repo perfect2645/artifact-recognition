@@ -1,0 +1,32 @@
+using System.Windows;
+using System.Windows.Controls;
+using Ioc;
+using Utils.Ioc;
+
+namespace artifact_automation_desktop.Generic;
+
+public interface INavigationService
+{
+    void SetNavigationHost(ContentControl host);
+    void NavigateTo<TView>() where TView : FrameworkElement;
+}
+
+[Register(Lifetime = Lifetime.Singleton)]
+public class NavigationService : INavigationService
+{
+    private ContentControl? _hostControl;
+    
+    public void SetNavigationHost(ContentControl host)
+    {
+        _hostControl = host;
+    }
+    
+    public void NavigateTo<TView>() where TView : FrameworkElement
+    {
+        if (_hostControl is null)
+            throw new InvalidOperationException("Please call SetNavigationHost to setup they host.");
+        
+        var view = AppContainer.Instance.Resolve<TView>();
+        _hostControl.Content = view;
+    }
+}
