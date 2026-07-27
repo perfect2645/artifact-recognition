@@ -1,0 +1,6 @@
+@artifact_domain_service_HostAddress = http://localhost:5125
+
+GET {{artifact_domain_service_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

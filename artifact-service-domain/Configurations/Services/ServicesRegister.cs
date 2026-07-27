@@ -1,0 +1,31 @@
+﻿using NetUtils.Aspnet.Configurations;
+
+namespace artifact_domain_service.Configurations.Services
+{
+    public static class ServicesRegister
+    {
+        extension(WebApplicationBuilder builder)
+        {
+            public void RegisterServices()
+            {
+                builder.RegisterAssembliesAutofac(
+                [
+                    typeof(Program).Assembly,
+                ]);
+                builder.RegisterMiddlewares();
+                builder.Configurations();
+            }
+
+            private void RegisterMiddlewares()
+            {
+                // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+                builder.Services.AddOpenApi();
+            }
+
+            private void Configurations()
+            {
+                //builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection(DomainConstants.RabbitMqSettings));
+            }
+        }
+    }
+}

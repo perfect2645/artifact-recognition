@@ -1,0 +1,1 @@
+"""Artifact recognition controller package."""

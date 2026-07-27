@@ -1,0 +1,18 @@
+结合messaging/signalr-client.py
+在src下面新建一个目录controller或者你觉得更好名字的目录来模块化代码文件实现整个artifact识别
+具体软件功能：
+1. 接收.net webapi发来的signalr消息，group使用“artifact”
+2. 解析artifact对象 payload然后执行图片转换dicom到位图
+3. 调用模型识别位图是否有伪影
+4. 更新识别结果到artifact对象
+5. 调用webapi接口返回识别结果
+
+artifact对象大致结构
+{
+    string sourceDicomImagePath,
+    string convertedBitmapImagePath,
+    Enum Status { Pending, Processing, Completed, Failed } status,
+    bool hasArtifact,
+    string? comments,
+    DateTime createdTime,
+}
