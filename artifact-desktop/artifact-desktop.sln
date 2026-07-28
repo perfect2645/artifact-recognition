@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "..\..\..\CSharp\La
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "artifact.desktop", "artifact-desktop\artifact.desktop.csproj", "{BB4F91F5-187A-4E01-77A9-662BF033D3F8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "artifact.service.domain", "..\artifact-service-domain\artifact.service.domain.csproj", "{69A25051-B199-F5D7-B831-E3BA944A9C76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{BB4F91F5-187A-4E01-77A9-662BF033D3F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB4F91F5-187A-4E01-77A9-662BF033D3F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB4F91F5-187A-4E01-77A9-662BF033D3F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69A25051-B199-F5D7-B831-E3BA944A9C76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69A25051-B199-F5D7-B831-E3BA944A9C76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69A25051-B199-F5D7-B831-E3BA944A9C76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69A25051-B199-F5D7-B831-E3BA944A9C76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

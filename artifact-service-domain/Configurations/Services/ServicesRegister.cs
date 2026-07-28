@@ -1,6 +1,6 @@
 ﻿using NetUtils.Aspnet.Configurations;
 
-namespace artifact_domain_service.Configurations.Services
+namespace artifact.service.domain.Configurations.Services
 {
     public static class ServicesRegister
     {

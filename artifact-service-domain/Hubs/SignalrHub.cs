@@ -1,9 +1,9 @@
-﻿using artifact_domain_service.Configurations;
+﻿using artifact.service.domain.Configurations;
 using Logging;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 
-namespace artifact_domain_service.Hubs
+namespace artifact.service.domain.Hubs
 {
     public class SignalRHub(IOptions<SignalRSettings> signalRSettings) : Hub
     {

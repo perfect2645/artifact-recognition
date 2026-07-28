@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>artifact_domain_service</RootNamespace>
+    <RootNamespace>artifact.service.domain</RootNamespace>
     <UserSecretsId>96913bbd-0040-4c2d-811f-761c3e3745b4</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>

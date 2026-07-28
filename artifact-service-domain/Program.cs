@@ -1,3 +1,4 @@
+using artifact.service.domain.Configurations.Services;
 using Logging;
 using NetUtils.Aspnet.Configurations;
 using NetUtils.Aspnet.Configurations.Swagger;
