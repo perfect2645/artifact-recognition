@@ -20,11 +20,13 @@ namespace artifact.service.domain.Configurations.Services
             {
                 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
                 builder.Services.AddOpenApi();
+                builder.Services.AddSignalR();
             }
 
             private void Configurations()
             {
                 //builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection(DomainConstants.RabbitMqSettings));
+                builder.Services.Configure<SignalRSettings>(builder.Configuration.GetSection(Constants.SignalRSettings));
             }
         }
     }
