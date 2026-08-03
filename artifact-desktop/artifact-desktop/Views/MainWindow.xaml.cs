@@ -1,12 +1,14 @@
 ﻿using System.Windows;
-using artifact_automation_desktop.Generic;
-using artifact_automation_desktop.Views.SingleImage;
+using artifact.desktop.Generic;
+using artifact.desktop.Views.SingleImage;
+using Utils.Ioc;
 
-namespace artifact_automation_desktop.Views;
+namespace artifact.desktop.Views;
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
+[Register(ServiceType = typeof(MainWindow), Lifetime = Lifetime.Singleton)]
 public partial class MainWindow : Window
 {
     public MainWindow(INavigationService navService)

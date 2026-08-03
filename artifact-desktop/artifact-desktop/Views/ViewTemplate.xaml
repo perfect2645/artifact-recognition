@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:singleImage="clr-namespace:artifact_automation_desktop.Views.SingleImage"
-                    xmlns:singleImageVm="clr-namespace:artifact_automation_desktop.ViewModels.SingleImage">
+                    xmlns:singleImage="clr-namespace:artifact.desktop.Views.SingleImage"
+                    xmlns:singleImageVm="clr-namespace:artifact.desktop.ViewModels.SingleImage">
     <DataTemplate DataType="{x:Type singleImageVm:SingleImageVm}">
         <ContentControl Content="{Binding SingleImageVm}" />
     </DataTemplate>

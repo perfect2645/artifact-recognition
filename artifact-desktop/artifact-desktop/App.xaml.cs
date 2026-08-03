@@ -1,17 +1,14 @@
 ﻿
-using System.Windows;
-using System.Windows.Threading;
-using artifact_automation_desktop.Configurations;
-using artifact_automation_desktop.ViewModels;
-using artifact_automation_desktop.ViewModels.SingleImage;
-using artifact_automation_desktop.Views;
+using artifact.desktop.Configurations;
+using artifact.desktop.Views;
 using Ioc;
 using Logging;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using System.Windows;
+using System.Windows.Threading;
 using Utils.Configuration;
 
-namespace artifact_automation_desktop;
+namespace artifact.desktop;
 
 /// <summary>
 /// Interaction logic for App.xaml
@@ -42,7 +39,7 @@ public partial class App : Application
 
     private void ConfigViews()
     {
-        AppContainer.Instance.Services.AddSingleton<MainWindow>();
+        //AppContainer.Instance.Services.AddSingleton<MainWindow>();
     }
 
     protected override void OnStartup(StartupEventArgs e)

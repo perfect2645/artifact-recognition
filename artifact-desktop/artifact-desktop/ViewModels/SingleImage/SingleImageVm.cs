@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Utils.Ioc;
 
-namespace artifact_automation_desktop.ViewModels.SingleImage;
+namespace artifact.desktop.ViewModels.SingleImage;
 
 [Register(ServiceType = typeof(SingleImageVm))]
 public partial class SingleImageVm : ObservableObject

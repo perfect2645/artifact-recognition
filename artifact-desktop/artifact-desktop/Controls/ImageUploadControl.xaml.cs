@@ -6,7 +6,7 @@ using Logging;
 using Microsoft.Win32;
 using Utils.Enumerable;
 
-namespace artifact_automation_desktop.Controls;
+namespace artifact.desktop.Controls;
 
 public partial class ImageUploadControl : UserControl
 {

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "artifact-automation-desktop": {
+    "artifact.desktop": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "environmentVariables": {
@@ -9,7 +9,7 @@
       }
     },
 
-    "artifact-automation-desktop-Production": {
+    "artifact.desktop-Production": {
       "commandName": "Project",
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "production"

@@ -1,9 +1,9 @@
-<UserControl x:Class="artifact_automation_desktop.Views.SingleImage.SingleImageView"
+<UserControl x:Class="artifact.desktop.Views.SingleImage.SingleImageView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:controls="clr-namespace:artifact_automation_desktop.Controls"
+             xmlns:controls="clr-namespace:artifact.desktop.Controls"
              Padding="20, 10"
              FontSize="30">
     <Grid>

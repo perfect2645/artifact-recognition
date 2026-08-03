@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using Ioc;
 using Utils.Ioc;
 
-namespace artifact_automation_desktop.Generic;
+namespace artifact.desktop.Generic;
 
 public interface INavigationService
 {

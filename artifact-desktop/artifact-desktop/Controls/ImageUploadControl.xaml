@@ -1,4 +1,4 @@
-<UserControl x:Class="artifact_automation_desktop.Controls.ImageUploadControl"
+<UserControl x:Class="artifact.desktop.Controls.ImageUploadControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <UserControl.Resources>

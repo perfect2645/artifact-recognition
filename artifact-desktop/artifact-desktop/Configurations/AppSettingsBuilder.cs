@@ -1,4 +1,4 @@
-namespace artifact_automation_desktop.Configurations;
+namespace artifact.desktop.Configurations;
 
 public class AppSettingsBuilder
 {

@@ -1,8 +1,8 @@
 using System.Windows.Controls;
-using artifact_automation_desktop.ViewModels.SingleImage;
+using artifact.desktop.ViewModels.SingleImage;
 using Utils.Ioc;
 
-namespace artifact_automation_desktop.Views.SingleImage;
+namespace artifact.desktop.Views.SingleImage;
 
 [Register(ServiceType = typeof(SingleImageView), Lifetime = Lifetime.Transient)]
 public partial class SingleImageView : UserControl

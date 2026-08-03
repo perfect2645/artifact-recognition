@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using Utils.Ioc;
 
-namespace artifact_automation_desktop.Configurations;
+namespace artifact.desktop.Configurations;
 
 public record AppSettings
 {

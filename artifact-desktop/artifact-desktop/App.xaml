@@ -1,11 +1,11 @@
-﻿<Application x:Class="artifact_automation_desktop.App"
+﻿<Application x:Class="artifact.desktop.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:artifact_automation_desktop">
+             xmlns:local="clr-namespace:artifact.desktop">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/artifact-automation-desktop;component/Generic/MuiStyles.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/artifact.desktop;component/Generic/MuiStyles.xaml" />
                 <ResourceDictionary Source="/Styles/Generic.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
