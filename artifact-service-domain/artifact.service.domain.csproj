@@ -21,4 +21,8 @@
     <Folder Include="Configurations\certs\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\artifact-desktop\artifact.shared\artifact.shared.csproj" />
+  </ItemGroup>
+
 </Project>

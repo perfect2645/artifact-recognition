@@ -3,5 +3,6 @@
     internal class Constants
     {
         internal const string SignalRSettings = "SignalRSettings";
+
     }
 }

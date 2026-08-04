@@ -1,3 +1,4 @@
+using artifact.service.domain.Configurations;
 using artifact.service.domain.Configurations.Services;
 using Logging;
 using NetUtils.Aspnet.Configurations;
@@ -19,6 +20,6 @@ builder.AddSwaggerGenExt($"{typeof(Program).Assembly.GetName().Name}.xml");
 
 var app = builder.Build();
 
-app.ConfigApp();
+app.ConfigApplication();
 
 app.Run();
