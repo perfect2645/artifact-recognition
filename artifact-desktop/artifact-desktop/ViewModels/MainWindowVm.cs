@@ -1,10 +1,11 @@
 using artifact.desktop.ViewModels.SingleImage;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Utils.Ioc;
 
 namespace artifact.desktop.ViewModels;
 
 [Register(Lifetime = Lifetime.Singleton)]
-public class MainWindowVm(SingleImageVm singleImageVm)
+public class MainWindowVm(SingleImageVm singleImageVm) : ObservableObject
 {
     public SingleImageVm SingleImageVm { get; } = singleImageVm;
 }

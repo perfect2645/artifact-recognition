@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Ioc;
 using Utils.Ioc;
 
 namespace artifact.desktop.Generic;
@@ -26,7 +25,7 @@ public class NavigationService : INavigationService
         if (_hostControl is null)
             throw new InvalidOperationException("Please call SetNavigationHost to setup they host.");
         
-        var view = AppContainer.Instance.Resolve<TView>();
-        _hostControl.Content = view;
+        //var view = AppContainer.Instance.Resolve<TView>();
+        //_hostControl.Content = view;
     }
 }

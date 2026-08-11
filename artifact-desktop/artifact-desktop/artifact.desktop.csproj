@@ -10,6 +10,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ApplicationDefinition Remove="App.xaml" />
+	  <Page Include="App.xaml" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
       <PackageReference Include="MaterialDesignColors" Version="5.3.3-ci1349" />
       <PackageReference Include="MaterialDesignThemes" Version="5.3.3-ci1349" />
@@ -34,7 +39,6 @@
     <ItemGroup>
       <ProjectReference Include="..\..\..\..\CSharp\Laboratory\Utils\Utils.csproj" />
       <ProjectReference Include="..\artifact.shared\artifact.shared.csproj" />
-      <ProjectReference Include="..\Ioc\artifact.desktop.Ioc.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,17 +1,14 @@
-﻿
-using artifact.desktop.Configurations;
+﻿using artifact.desktop.Messaging.Signalr;
 using artifact.desktop.Views;
-using Ioc;
-using Logging;
-using Microsoft.Extensions.DependencyInjection;
-using artifact.desktop.Messaging.Signalr;
-using System.Windows;
-using System.Windows.Threading;
-using Utils.Configuration;
-using Microsoft.Extensions.Hosting;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Logging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Reflection;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace artifact.desktop;
 
@@ -20,73 +17,70 @@ namespace artifact.desktop;
 /// </summary>
 public partial class App : Application
 {
-    private IHost _host = null!;
 
-    public App()
+    [STAThread]
+    public static void Main(string[] args)
     {
-        DispatcherUnhandledException += UnHandledExceptionHandler;
-        InitServices();
+        using IHost host = CreateHostBuilder(args).Build();
+
+        host.Start();
+
+        var app = new App();
+        app.InitializeComponent();
+
+        var mainWindow = host.Services.GetRequiredService<MainWindow>();
+        mainWindow.Show();
+
+        app.Run();
     }
 
-    private void InitServices()
+    private static IHostBuilder CreateHostBuilder(string[] args)
     {
-        SetupAppConfig();
-        ConfigViews();
-
-        // build generic host with Autofac as the service provider factory
-        _host = Host.CreateDefaultBuilder()
+        var hostBuilder = Host.CreateDefaultBuilder(args)
             .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+            .ConfigureHostConfiguration(config =>
+            {
+                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                config.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")}.json", optional: true, reloadOnChange: true);
+                config.AddEnvironmentVariables();
+            })
             .ConfigureServices((context, services) =>
             {
-                // bind configuration sections
-                var appsettings = AppConfig.Configuration!.GetSection("AppSettings");
-                services.Configure<AppSettings>(appsettings);
+                //// bind configuration sections
+                //var appsettings = AppConfig.Configuration!.GetSection("AppSettings");
+                //services.Configure<AppSettings>(appsettings);
 
-                var signalrSection = AppConfig.Configuration!.GetSection("SignalR");
-                services.Configure<SignalRSettings>(signalrSection);
+                //var signalrSection = AppConfig.Configuration!.GetSection("SignalR");
+                //services.Configure<SignalRSettings>(signalrSection);
 
                 // register SignalR client
-                services.AddSingleton<ISignalRClient, SignalRClient>();
-                services.AddSingleton<IHostedService>(sp => (IHostedService)sp.GetRequiredService<ISignalRClient>());
+                services.AddSingleton<ISignalRClient<string>, SignalRClient<string>>();
             })
             .ConfigureContainer<ContainerBuilder>((context, builder) =>
             {
                 // keep auto registration behavior
-                var assemblies = new[] { Assembly.GetEntryAssembly() };
+                var assemblies = new[] 
+                { 
+                    Assembly.GetEntryAssembly()!
+                };
                 builder.RegisterModule(new Utils.Ioc.AutoRegisterModule(assemblies));
-            })
-            .Build();
-    }
-    
-    private void SetupAppConfig()
-    {
-        AppConfig.Init();
-
-        var appsettings = AppConfig.Configuration!.GetSection("AppSettings");
-        AppContainer.Instance.Services.Configure<AppSettings>(appsettings);
+            });
+        return hostBuilder;
     }
 
-    private void ConfigViews()
+    public App()
     {
-        //AppContainer.Instance.Services.AddSingleton<MainWindow>();
+        DispatcherUnhandledException += UnHandledExceptionHandler;
     }
+
+    //public static IServiceProvider GetServiceProvider(IServiceCollection services)
+    //{
+        
+    //}
 
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-
-        // start host and show main window
-        if (_host != null)
-        {
-            await _host.StartAsync();
-
-            // allow AppContainer to resolve from host when needed
-            AppContainer.Instance.SetHostServiceProvider(_host.Services);
-
-            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-            MainWindow = mainWindow;
-            mainWindow.Show();
-        }
     }
     
     private void UnHandledExceptionHandler(object sender, DispatcherUnhandledExceptionEventArgs args)
@@ -99,8 +93,8 @@ public partial class App : Application
     {
         try
         {
-            await _host.StopAsync();
-            _host.Dispose();
+            //await _host.StopAsync();
+            //_host.Dispose();
         }
         catch (Exception ex)
         {
@@ -108,5 +102,7 @@ public partial class App : Application
         }
 
         base.OnExit(e);
+
+        DispatcherUnhandledException -= UnHandledExceptionHandler;
     }
 }
