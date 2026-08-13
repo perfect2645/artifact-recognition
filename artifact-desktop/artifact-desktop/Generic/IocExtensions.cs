@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace artifact.desktop.Generic
 {
@@ -8,9 +6,14 @@ namespace artifact.desktop.Generic
     {
         extension(App app)
         {
-            public IServiceProvider GetServiceProvider()
+            public static T GetService<T>() where T : class
             {
-                return null;
+                return App.AppHost.Services.GetRequiredService<T>();
+            }
+
+            public static T GetKeyedService<T>(string key) where T : class
+            {
+                return App.AppHost.Services.GetRequiredKeyedService<T>(key);
             }
         }
     }

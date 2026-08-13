@@ -2,10 +2,12 @@
 using artifact.desktop.Views;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using CommunityToolkit.Mvvm.Messaging;
 using Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
@@ -18,54 +20,90 @@ namespace artifact.desktop;
 public partial class App : Application
 {
 
+    public static IHost AppHost { get; private set; } = null!;
+
     [STAThread]
-    public static void Main(string[] args)
+    private static void Main(string[] args)
     {
-        using IHost host = CreateHostBuilder(args).Build();
+        InitBootstrapperLogger();
 
-        host.Start();
+        try
+        {
+            AppHost = CreateHostBuilder(args).Build();
 
-        var app = new App();
+            AppHost.Start();
+
+        }
+        catch (Exception ex)
+        {
+            Log.Logger.Error("An error occurred while starting AppHost: {ex.Message}", ex.Message);
+            if (AppHost != null)
+            {
+                AppHost.StopAsync().GetAwaiter().GetResult();
+                AppHost.Dispose();
+            }
+            return;
+        }
+
+        Log.Information("AppHost started successfully.");
+
+        App app = new();
         app.InitializeComponent();
 
-        var mainWindow = host.Services.GetRequiredService<MainWindow>();
-        mainWindow.Show();
+        var mainWindow = AppHost.Services.GetRequiredService<MainWindow>();
+        app.Run(mainWindow);
+    }
 
-        app.Run();
+    private static void InitBootstrapperLogger()
+    {
+        SeriLogger.CreateBootstrapLogger(rollingInterval: RollingInterval.Month);
     }
 
     private static IHostBuilder CreateHostBuilder(string[] args)
     {
-        var hostBuilder = Host.CreateDefaultBuilder(args)
-            .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-            .ConfigureHostConfiguration(config =>
-            {
-                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                config.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")}.json", optional: true, reloadOnChange: true);
-                config.AddEnvironmentVariables();
-            })
-            .ConfigureServices((context, services) =>
-            {
-                //// bind configuration sections
-                //var appsettings = AppConfig.Configuration!.GetSection("AppSettings");
-                //services.Configure<AppSettings>(appsettings);
+        try
+        {
+            var hostBuilder = Host.CreateDefaultBuilder(args)
+                .AddSerilogger()
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .ConfigureHostConfiguration(config =>
+                {
+                    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                    config.AddEnvironmentVariables();
+                })
+                .ConfigureServices((context, services) =>
+                {
+                    //// bind configuration sections
+                    //var appsettings = AppConfig.Configuration!.GetSection("AppSettings");
+                    //services.Configure<AppSettings>(appsettings);
 
-                //var signalrSection = AppConfig.Configuration!.GetSection("SignalR");
-                //services.Configure<SignalRSettings>(signalrSection);
+                    //var signalrSection = AppConfig.Configuration!.GetSection("SignalR");
+                    //services.Configure<SignalRSettings>(signalrSection);
 
-                // register SignalR client
-                services.AddSingleton<ISignalRClient<string>, SignalRClient<string>>();
-            })
-            .ConfigureContainer<ContainerBuilder>((context, builder) =>
-            {
-                // keep auto registration behavior
-                var assemblies = new[] 
-                { 
-                    Assembly.GetEntryAssembly()!
-                };
-                builder.RegisterModule(new Utils.Ioc.AutoRegisterModule(assemblies));
-            });
-        return hostBuilder;
+                    services.AddSingleton(_ => Current.Dispatcher);
+                    services.AddSingleton<WeakReferenceMessenger>();
+                    services.AddSingleton<IMessenger, WeakReferenceMessenger>(provider => provider.GetRequiredService<WeakReferenceMessenger>());
+
+                    // register SignalR client
+                    services.AddSingleton<ISignalRClient<string>, SignalRClient<string>>();
+                })
+                .ConfigureContainer<ContainerBuilder>((context, builder) =>
+                {
+                    // keep auto registration behavior
+                    var assemblies = new[]
+                    {
+                        Assembly.GetEntryAssembly()!
+                    };
+                    builder.RegisterModule(new Utils.Ioc.AutoRegisterModule(assemblies));
+                });
+
+            return hostBuilder;
+        }
+        catch (Exception ex)
+        {
+            Log.Logger.Error("An error occurred while creating the host builder: {ex.Message}", ex.Message);
+            throw;
+        }
     }
 
     public App()
@@ -73,23 +111,18 @@ public partial class App : Application
         DispatcherUnhandledException += UnHandledExceptionHandler;
     }
 
-    //public static IServiceProvider GetServiceProvider(IServiceCollection services)
-    //{
-        
-    //}
-
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
     }
     
     private void UnHandledExceptionHandler(object sender, DispatcherUnhandledExceptionEventArgs args)
     {
-        Log4Logger.Logger.Error($"An unhandled exception occurred: {args.Exception?.Message}");
+       Log.Error($"An unhandled exception occurred: {args.Exception?.Message}");
         args.Handled = true;
     }
 
-    protected override async void OnExit(ExitEventArgs e)
+    protected override void OnExit(ExitEventArgs e)
     {
         try
         {

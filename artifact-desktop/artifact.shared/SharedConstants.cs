@@ -1,7 +1,7 @@
 ﻿namespace artifact.shared
 {
-    public class SharedConstants
+    public static class SharedConstants
     {
-        internal const string SignalREndpoint = "/signalrHub";
+        public const string SignalREndpoint = "/signalrHub";
     }
 }

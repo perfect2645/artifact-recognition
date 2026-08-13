@@ -11,7 +11,7 @@
 
     <ItemGroup>
       <ApplicationDefinition Remove="App.xaml" />
-	  <Page Include="App.xaml" />
+	    <Page Include="App.xaml" />
     </ItemGroup>
 
     <ItemGroup>
@@ -37,6 +37,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\..\CSharp\Laboratory\Logging\Logging.csproj" />
       <ProjectReference Include="..\..\..\..\CSharp\Laboratory\Utils\Utils.csproj" />
       <ProjectReference Include="..\artifact.shared\artifact.shared.csproj" />
     </ItemGroup>
@@ -53,5 +54,4 @@
         <SubType>Designer</SubType>
       </Page>
     </ItemGroup>
-
 </Project>
