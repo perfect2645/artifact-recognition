@@ -1,10 +1,8 @@
 ﻿using artifact.desktop.Generic;
+using artifact.desktop.ViewModels;
 using artifact.desktop.Views.SingleImage;
-using log4net.Core;
-using log4net.Repository.Hierarchy;
 using Microsoft.Extensions.Logging;
 using System.Windows;
-using System.Windows.Input;
 using Utils.Ioc;
 
 namespace artifact.desktop.Views;
@@ -17,10 +15,12 @@ public partial class MainWindow : Window
 {
     private readonly ILogger<MainWindow> _logger;
 
-    public MainWindow(INavigationService navService, ILogger<MainWindow> logger)
+    public MainWindow(MainWindowVm mainWindowVm, INavigationService navService, ILogger<MainWindow> logger)
     {
         _logger = logger;
         InitializeComponent();
+
+        DataContext = mainWindowVm;
         navService.SetNavigationHost(MainContentHost);
         navService.NavigateTo<SingleImageView>();
 

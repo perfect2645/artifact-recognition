@@ -24,8 +24,8 @@ public class NavigationService : INavigationService
     {
         if (_hostControl is null)
             throw new InvalidOperationException("Please call SetNavigationHost to setup they host.");
-        
-        //var view = AppContainer.Instance.Resolve<TView>();
-        //_hostControl.Content = view;
+
+        var view = App.GetService<TView>();
+        _hostControl.Content = view;
     }
 }
