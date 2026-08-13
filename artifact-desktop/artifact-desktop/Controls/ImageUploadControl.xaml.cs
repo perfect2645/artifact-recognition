@@ -1,9 +1,9 @@
+using Microsoft.Win32;
+using Serilog;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
-using Logging;
-using Microsoft.Win32;
 using Utils.Enumerable;
 
 namespace artifact.desktop.Controls;
@@ -108,7 +108,7 @@ public partial class ImageUploadControl : UserControl
         var files = e.Data.GetData(DataFormats.FileDrop) as string[];
         if (!files.HasItem())
         {
-            Log4Logger.Logger.Warn("file drop event failed. got empty files.");
+            Log.Warning("file drop event failed. got empty files.");
             return;
         }
         

@@ -22,10 +22,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="log4net.config" />
-      <Content Include="log4net.config">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
       <None Remove="appsettings.json" />
       <Content Include="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -131,7 +131,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            Log4Logger.Logger.Error(ex.Message);
+            Log.Error(ex.Message);
         }
 
         base.OnExit(e);
