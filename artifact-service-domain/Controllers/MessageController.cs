@@ -1,4 +1,6 @@
-﻿using Asp.Versioning;
+﻿using artifact.service.domain.Models.SignalR;
+using artifact.service.domain.Services.Signalr;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 
 namespace artifact.service.domain.Controllers
@@ -6,13 +8,18 @@ namespace artifact.service.domain.Controllers
     [ApiController]
     [Route("[controller]")]
     [ApiVersion("0.1")]
-    public class MessageController(ILogger<MessageController> logger) : ControllerBase
+    public class MessageController(
+        ILogger<MessageController> logger,
+        IRealtimeService<ArtifactMessage> realtimeService) : ControllerBase
     {
         private readonly ILogger<MessageController> _logger = logger;
+        private readonly IRealtimeService<ArtifactMessage> _realtimeService = realtimeService;
 
         [HttpPost]
-        public IActionResult SendSignalrArtifact()
+        [Route("signalr-artifact")]
+        public async Task<IActionResult> SendSignalrArtifact([FromBody] ArtifactMessage message)
         {
+            await _realtimeService.SendRealtimeAsync(message);
             _logger.LogInformation("Received a POST request.");
             return Ok("Signalr artifact sent successfully!");
         }
