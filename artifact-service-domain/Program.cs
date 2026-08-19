@@ -6,7 +6,7 @@ using NetUtils.Aspnet.Configurations.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.NetCoreLoggingSetup(Path.Combine("logs", builder.Environment.ApplicationName));
+builder.Host.AddSerilogger();
 // Add services to the container.
 
 builder.Services.AddControllers();

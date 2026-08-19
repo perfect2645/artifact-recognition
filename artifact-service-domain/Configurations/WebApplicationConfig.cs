@@ -10,7 +10,7 @@ namespace artifact.service.domain.Configurations
             public void ConfigApplication()
             {
                 app.ConfigApp();
-                app.MapHub<SignalRHub>(Constants.SignalREndpoint);
+                app.MapHub<SignalRHub>(Constants.SignalRSettings);
             }
         }
     }

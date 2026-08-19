@@ -1,13 +1,14 @@
 ﻿using artifact.service.domain.Configurations;
-using Logging;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 
 namespace artifact.service.domain.Hubs
 {
-    public class SignalRHub(IOptions<SignalRSettings> signalRSettings) : Hub
+    public class SignalRHub(IOptions<SignalRSettings> signalRSettings,
+        ILogger<SignalRHub> logger) : Hub
     {
         private readonly SignalRSettings _signalRSettings = signalRSettings.Value;
+        private readonly ILogger<SignalRHub> _logger = logger;
 
         /// <summary>
         /// Client connected
@@ -15,7 +16,7 @@ namespace artifact.service.domain.Hubs
         public override async Task OnConnectedAsync()
         {
             var connectionId = Context.ConnectionId;
-            Log4Logger.Logger.Info($"Client [{connectionId}] connected to SignalR");
+            _logger.LogInformation("Client [{connectionId}] connected to SignalR", connectionId);
 
             await Groups.AddToGroupAsync(connectionId, _signalRSettings.Group);
 
@@ -34,16 +35,16 @@ namespace artifact.service.domain.Hubs
 
                 if (exception != null)
                 {
-                    Log4Logger.Logger.Error($"Client [{connectionId}] disconnected from SignalR unexpectly", exception);
+                    _logger.LogError(exception, "Client [{connectionId}] disconnected from SignalR unexpectly", connectionId);
                 }
                 else
                 {
-                    Log4Logger.Logger.Info($"Client [{connectionId}] manually disconnected from SignalR");
+                    _logger.LogInformation("Client [{connectionId}] manually disconnected from SignalR", connectionId);
                 }
             }
             catch (Exception ex)
             {
-                Log4Logger.Logger.Error($"SignalR connection error: {ex.Message}", ex);
+                _logger.LogError(ex, "SignalR connection error: {Message}", ex.Message);
             }
 
             await base.OnDisconnectedAsync(exception);
@@ -51,18 +52,18 @@ namespace artifact.service.domain.Hubs
 
         public async Task JoinGroup(string groupName)
         {
-            ArgumentNullException.ThrowIfNullOrWhiteSpace(groupName);
+            ArgumentException.ThrowIfNullOrWhiteSpace(groupName);
 
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName.Trim());
-            Log4Logger.Logger.Info($"SignalR: Client [{Context.ConnectionId}] joined group : {groupName}");
+            _logger.LogInformation("SignalR: Client [{ConnectionId}] joined group : {GroupName}", Context.ConnectionId, groupName);
         }
 
         public async Task LeaveGroup(string groupName)
         {
-            ArgumentNullException.ThrowIfNullOrWhiteSpace(groupName);
+            ArgumentException.ThrowIfNullOrWhiteSpace(groupName);
 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName.Trim());
-            Log4Logger.Logger.Info($"SignalR: Client[{Context.ConnectionId}] leaved group : {groupName}");
+            _logger.LogInformation("SignalR: Client [{ConnectionId}] left group : {GroupName}", Context.ConnectionId, groupName);
         }
     }
 }

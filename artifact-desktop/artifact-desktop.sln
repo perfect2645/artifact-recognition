@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "artifact.shared", "artifact
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging", "..\..\..\CSharp\Laboratory\Logging\Logging.csproj", "{08C71C00-2F33-DD1F-F4AA-FE74EA710A1F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetUtils", "..\..\..\CSharp\Laboratory\NetUtils\NetUtils.csproj", "{1B46B798-796F-4478-07B6-C5A1384D051B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{08C71C00-2F33-DD1F-F4AA-FE74EA710A1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08C71C00-2F33-DD1F-F4AA-FE74EA710A1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08C71C00-2F33-DD1F-F4AA-FE74EA710A1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B46B798-796F-4478-07B6-C5A1384D051B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B46B798-796F-4478-07B6-C5A1384D051B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B46B798-796F-4478-07B6-C5A1384D051B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B46B798-796F-4478-07B6-C5A1384D051B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
