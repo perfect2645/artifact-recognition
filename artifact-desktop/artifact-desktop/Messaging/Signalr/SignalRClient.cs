@@ -8,14 +8,15 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
 using System.Text.Json;
-using System.Windows;
+using Utils.Ioc;
 
 namespace artifact.desktop.Messaging.Signalr
 {
-    internal class SignalRClient<TPayload> : ISignalRClient<TPayload> where TPayload : notnull
+    [Register(ServiceType = typeof(ISignalRClient<>), Lifetime = Lifetime.Singleton)]
+    internal class SignalRClient<TPayload> : ISignalRClient<IRealTimeMessage<TPayload>> where TPayload : notnull
     {
         private readonly HubConnection _hubConnection;
-        private readonly ILogger<SignalRClient<TPayload>> _logger;
+        private readonly ILogger<SignalRClient<IRealTimeMessage<TPayload>>> _logger;
         private readonly SignalRSettings _settings;
 
         // Persistent group set: automatically restored after reconnection
@@ -29,7 +30,7 @@ namespace artifact.desktop.Messaging.Signalr
         public event Action<HubConnectionState>? StateChanged;
 
         /// <inheritdoc />
-        public event Action<IRealTimeMessage<TPayload>>? MessageReceived;
+        public event Action<IRealTimeMessage<IRealTimeMessage<TPayload>>>? MessageReceived;
 
         /// <summary>
         /// Initializes a new instance. Performs only lightweight setup; no network I/O.
@@ -37,7 +38,7 @@ namespace artifact.desktop.Messaging.Signalr
         public SignalRClient(
             IOptions<SignalRSettings> settings,
             IDispatcherService dispatcher,
-            ILogger<SignalRClient<TPayload>> logger)
+            ILogger<SignalRClient<IRealTimeMessage<TPayload>>> logger)
         {
             _settings = settings.Value;
             _logger = logger;
@@ -228,7 +229,7 @@ namespace artifact.desktop.Messaging.Signalr
         }
 
         /// <inheritdoc />
-        public async Task SendMessageAsync(IRealTimeMessage<TPayload> message, CancellationToken cancellationToken = default)
+        public async Task SendMessageAsync(IRealTimeMessage<IRealTimeMessage<TPayload>> message, CancellationToken cancellationToken = default)
         {
             // Auto-connect if not already connected
             if (CurrentState != HubConnectionState.Connected)

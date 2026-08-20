@@ -1,5 +1,5 @@
 ﻿using artifact.service.domain.Hubs;
-using artifact.service.domain.Models.SignalR;
+using artifact.shared.data;
 using Microsoft.AspNetCore.SignalR;
 using Utils.Ioc;
 

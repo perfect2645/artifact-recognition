@@ -1,6 +1,4 @@
-﻿using artifact.shared.data;
-
-namespace artifact.service.domain.Models.SignalR
+﻿namespace artifact.shared.data
 {
     public record ArtifactMessage(string Sender, string Topic, Artifact Message) : IRealTimeMessage<Artifact>;
 }

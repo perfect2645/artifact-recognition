@@ -1,5 +1,5 @@
-﻿using artifact.service.domain.Models.SignalR;
-using artifact.service.domain.Services.Signalr;
+﻿using artifact.service.domain.Services.Signalr;
+using artifact.shared.data;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 
