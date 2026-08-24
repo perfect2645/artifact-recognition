@@ -1,3 +1,5 @@
+using artifact.desktop.Messaging.Signalr;
+using artifact.shared.data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Utils.Ioc;
@@ -12,8 +14,11 @@ public partial class SingleImageVm : ObservableObject
     [ObservableProperty] private string? _recognitionResult;
     [ObservableProperty] private string? _outputPath;
 
-    public SingleImageVm()
+    private readonly ISignalRClient<IRealTimeMessage<ArtifactMessage>> _signalRClient;
+
+    public SingleImageVm(ISignalRClient<IRealTimeMessage<ArtifactMessage>> signalRClient)
     {
+        _signalRClient = signalRClient;
         ResetRecognitionStatus();
     }
 

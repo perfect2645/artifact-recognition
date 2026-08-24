@@ -1,5 +1,7 @@
-﻿using artifact.desktop.Messaging.Signalr;
+﻿using artifact.desktop.Configurations;
+using artifact.desktop.Messaging.Signalr;
 using artifact.desktop.Views;
+using artifact.shared.data;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
@@ -73,19 +75,15 @@ public partial class App : Application
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    //// bind configuration sections
-                    //var appsettings = AppConfig.Configuration!.GetSection("AppSettings");
-                    //services.Configure<AppSettings>(appsettings);
-
-                    //var signalrSection = AppConfig.Configuration!.GetSection("SignalR");
-                    //services.Configure<SignalRSettings>(signalrSection);
+                    // bind configuration sections
+                    services.Configure<AppSettings>(context.Configuration.GetSection("AppSettings"));
+                    services.Configure<SignalRSettings>(context.Configuration.GetSection("AppSettings:SignalrSettings"));
 
                     services.AddSingleton(_ => Current.Dispatcher);
                     services.AddSingleton<WeakReferenceMessenger>();
                     services.AddSingleton<IMessenger, WeakReferenceMessenger>(provider => provider.GetRequiredService<WeakReferenceMessenger>());
+                    services.AddSingleton<ISignalRClient<IRealTimeMessage<ArtifactMessage>>, SignalRClient<ArtifactMessage>>();
 
-                    // register SignalR client
-                    services.AddSingleton<ISignalRClient<string>, SignalRClient<string>>();
                 })
                 .ConfigureContainer<ContainerBuilder>((context, builder) =>
                 {
@@ -109,25 +107,19 @@ public partial class App : Application
     public App()
     {
         DispatcherUnhandledException += UnHandledExceptionHandler;
+        AppDomain.CurrentDomain.UnhandledException += OnAppDomainUnhandledException;
     }
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
     }
-    
-    private void UnHandledExceptionHandler(object sender, DispatcherUnhandledExceptionEventArgs args)
-    {
-       Log.Error($"An unhandled exception occurred: {args.Exception?.Message}");
-        args.Handled = true;
-    }
 
     protected override void OnExit(ExitEventArgs e)
     {
         try
         {
-            //await _host.StopAsync();
-            //_host.Dispose();
+            AppDomain.CurrentDomain.UnhandledException -= OnAppDomainUnhandledException;
         }
         catch (Exception ex)
         {
@@ -137,5 +129,24 @@ public partial class App : Application
         base.OnExit(e);
 
         DispatcherUnhandledException -= UnHandledExceptionHandler;
+    }
+
+    private void UnHandledExceptionHandler(object sender, DispatcherUnhandledExceptionEventArgs args)
+    {
+        Log.Error($"An unhandled exception occurred: {args.Exception?.Message}");
+        args.Handled = true;
+    }
+
+    private void OnAppDomainUnhandledException(object? sender, UnhandledExceptionEventArgs args)
+    {
+        var ex = args.ExceptionObject as Exception;
+        if (ex != null)
+        {
+            Log.Error(ex, "An unhandled AppDomain exception occurred: {Message}", ex.Message);
+        }
+        else
+        {
+            Log.Error("An unhandled AppDomain exception occurred. ExceptionObject: {Obj}", args.ExceptionObject);
+        }
     }
 }

@@ -26,6 +26,7 @@ public class NavigationService : INavigationService
             throw new InvalidOperationException("Please call SetNavigationHost to setup they host.");
 
         var view = App.GetService<TView>();
+
         _hostControl.Content = view;
     }
 }

@@ -8,11 +8,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
 using System.Text.Json;
-using Utils.Ioc;
 
 namespace artifact.desktop.Messaging.Signalr
 {
-    [Register(ServiceType = typeof(ISignalRClient<>), Lifetime = Lifetime.Singleton)]
+    //[Register(ServiceType = typeof(ISignalRClient<>), Lifetime = Lifetime.Singleton)]
     internal class SignalRClient<TPayload> : ISignalRClient<IRealTimeMessage<TPayload>> where TPayload : notnull
     {
         private readonly HubConnection _hubConnection;
@@ -37,7 +36,6 @@ namespace artifact.desktop.Messaging.Signalr
         /// </summary>
         public SignalRClient(
             IOptions<SignalRSettings> settings,
-            IDispatcherService dispatcher,
             ILogger<SignalRClient<IRealTimeMessage<TPayload>>> logger)
         {
             _settings = settings.Value;
