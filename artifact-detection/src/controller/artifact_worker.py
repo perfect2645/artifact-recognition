@@ -84,11 +84,11 @@ class ArtifactWorker:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="SignalR artifact recognition worker")
-    parser.add_argument("--hub-url", default="http://localhost:5000/hubs/updates")
-    parser.add_argument("--event-name", default="ArtifactCreated")
-    parser.add_argument("--group-name", default="artifact")
+    parser.add_argument("--hub-url", default="https://localhost:7092/hubs/signalr")
+    parser.add_argument("--event-name", default="recognition")
+    parser.add_argument("--group-name", default="recognition-model")
     parser.add_argument("--join-group-method", default="JoinGroup")
-    parser.add_argument("--result-url", required=True)
+    parser.add_argument("--result-url", default="https://localhost:7092/api/artifact/result")
     parser.add_argument("--model-path", type=Path, default=SRC_DIR / "model" / "best_model.pth")
     parser.add_argument("--bitmap-output-dir", type=Path, default=SRC_DIR / "runtime" / "converted")
     parser.add_argument("--access-token", default=None)

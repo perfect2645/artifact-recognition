@@ -1,0 +1,21 @@
+# Dependencies for artifact-detection
+# Generated based on imports in src/
+
+# DICOM medical image processing
+pydicom
+
+# Numerical computing
+numpy
+
+# Image processing (PIL)
+Pillow
+
+# Deep learning inference
+torch
+torchvision
+
+# Plotting for PDF report generation
+matplotlib
+
+# SignalR real-time communication client
+signalrcore

@@ -17,9 +17,6 @@ namespace artifact.service.domain.Hubs
         {
             var connectionId = Context.ConnectionId;
             _logger.LogInformation("Client [{connectionId}] connected to SignalR", connectionId);
-
-            await Groups.AddToGroupAsync(connectionId, _signalRSettings.Group);
-
             await base.OnConnectedAsync();
         }
 
@@ -31,7 +28,7 @@ namespace artifact.service.domain.Hubs
             var connectionId = Context.ConnectionId;
             try
             {
-                await Groups.RemoveFromGroupAsync(connectionId, _signalRSettings.Group);
+                //await Groups.RemoveFromGroupAsync(connectionId, _signalRSettings.Group);
 
                 if (exception != null)
                 {

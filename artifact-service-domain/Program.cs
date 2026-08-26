@@ -6,6 +6,7 @@ using NetUtils.Aspnet.Configurations.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
 builder.Host.AddSerilogger();
 // Add services to the container.
 

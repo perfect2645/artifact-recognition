@@ -27,13 +27,15 @@ class SignalRReceiver:
 		self.on_message = on_message or self._default_message_handler
 		self._stopping = False
 
+		options: dict[str, Any] = {}
+		if access_token:
+			options["access_token_factory"] = lambda: access_token
+
 		builder = (
 			HubConnectionBuilder()
 			.with_url(
 				hub_url,
-				options={
-					"access_token_factory": (lambda: access_token) if access_token else None,
-				},
+				options=options,
 			)
 			.with_automatic_reconnect(
 				{

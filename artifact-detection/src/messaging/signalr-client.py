@@ -16,7 +16,7 @@ def _parse_args() -> argparse.Namespace:
 	parser = argparse.ArgumentParser(description="Receive messages from a .NET SignalR hub.")
 	parser.add_argument(
 		"--hub-url",
-		default="http://localhost:5000/hubs/updates",
+		default="https://localhost:7092/hubs/signalr",
 		help="SignalR hub URL exposed by the WebAPI server.",
 	)
 	parser.add_argument(

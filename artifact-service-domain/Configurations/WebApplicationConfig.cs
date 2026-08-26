@@ -1,4 +1,5 @@
 ﻿using artifact.service.domain.Hubs;
+using artifact.shared;
 using NetUtils.Aspnet.Configurations;
 
 namespace artifact.service.domain.Configurations
@@ -10,7 +11,7 @@ namespace artifact.service.domain.Configurations
             public void ConfigApplication()
             {
                 app.ConfigApp();
-                app.MapHub<SignalRHub>(Constants.SignalRSettings);
+                app.MapHub<SignalRHub>(SharedConstants.SignalREndpoint);
             }
         }
     }

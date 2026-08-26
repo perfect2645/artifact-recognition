@@ -2,6 +2,6 @@
 {
     public static class SharedConstants
     {
-        public const string SignalREndpoint = "/signalrHub";
+        public const string SignalREndpoint = "/hubs/signalr";
     }
 }

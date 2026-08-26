@@ -1,6 +1,6 @@
 using artifact.desktop.Configurations;
-using artifact.desktop.Services;
 using artifact.shared.data;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
 using System.Text.Json;
+using Utils.Tasking;
 
 namespace artifact.desktop.Messaging.Signalr
 {
@@ -17,6 +18,7 @@ namespace artifact.desktop.Messaging.Signalr
         private readonly HubConnection _hubConnection;
         private readonly ILogger<SignalRClient<IRealTimeMessage<TPayload>>> _logger;
         private readonly SignalRSettings _settings;
+        private readonly IMessenger _messenger;
 
         // Persistent group set: automatically restored after reconnection
         private readonly HashSet<string> _joinedGroups = new();
@@ -36,16 +38,30 @@ namespace artifact.desktop.Messaging.Signalr
         /// </summary>
         public SignalRClient(
             IOptions<SignalRSettings> settings,
-            ILogger<SignalRClient<IRealTimeMessage<TPayload>>> logger)
+            ILogger<SignalRClient<IRealTimeMessage<TPayload>>> logger,
+            IMessenger messenger)
         {
             _settings = settings.Value;
             _logger = logger;
+            _messenger = messenger;
 
             if (string.IsNullOrWhiteSpace(_settings.HubUrl))
                 throw new ArgumentException("SignalR Hub URL is not configured");
+            _hubConnection = BuildHubConnection();
+
+            // Register connection lifecycle event handlers
+            RegisterLifecycleEvents();
+            // Register server-to-client message handlers
+            RegisterMessageHandlers();
+
+            StartAsync().SafeFireAndForget();
+        }
+
+        private HubConnection BuildHubConnection()
+        {
 
             // Build hub connection with full configuration
-            _hubConnection = new HubConnectionBuilder()
+            return new HubConnectionBuilder()
                 .WithUrl(_settings.HubUrl, options =>
                 {
                     // Dynamic access token provider: replace with your auth service
@@ -86,11 +102,6 @@ namespace artifact.desktop.Messaging.Signalr
                     logging.SetMinimumLevel(LogLevel.Information);
                 })
                 .Build();
-
-            // Register connection lifecycle event handlers
-            RegisterLifecycleEvents();
-            // Register server-to-client message handlers
-            RegisterMessageHandlers();
         }
 
         #region Internal Registration
@@ -135,10 +146,7 @@ namespace artifact.desktop.Messaging.Signalr
         private void RegisterMessageHandlers()
         {
             // Incoming chat message handler
-            _hubConnection.On<IRealTimeMessage<TPayload>>("ReceiveMessage", message =>
-            {
-                _logger.LogDebug($"Message received from [{message.Sender}], topic=[{message.Topic}]");
-            });
+            _hubConnection.On<IRealTimeMessage<TPayload>>("ReceiveMessage", OnMessageReceived);
 
             // System-wide notification handler
             _hubConnection.On<string>("SystemNotice", notice =>
@@ -146,6 +154,12 @@ namespace artifact.desktop.Messaging.Signalr
                 _logger.LogDebug("System notice received: {Notice}", notice);
                 // Extend with UI presentation logic as needed
             });
+        }
+
+        private void OnMessageReceived(IRealTimeMessage<TPayload> message)
+        {
+            _logger.LogDebug("Message received from [{message.Sender}], topic=[{message.Topic}]", message.Sender, message.Topic);
+            _messenger.Send(message);
         }
 
         /// <summary>
