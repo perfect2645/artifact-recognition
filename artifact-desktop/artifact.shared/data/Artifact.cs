@@ -10,15 +10,18 @@
     public enum RecognitionStatus
     {
         Pending = 0,
-        Recognized = 1,
-        Canceled = 2,
-        Error = 3,
+        Proceeding,
+        Completed,
+        Canceled,
+        Error,
     }
 
 
     public record Artifact(
         string ArtifactId,
         string Name,
+        string InputPath,
+        string OutputPath,
         DateTime? UpdateTime,
         ArtifactStatus ArtifactStatus,
         RecognitionStatus RecognitionStatus

@@ -1,4 +1,5 @@
 ﻿using artifact.desktop.Configurations;
+using artifact.desktop.Generic;
 using artifact.desktop.Messaging.Signalr;
 using artifact.desktop.Views;
 using artifact.shared.data;
@@ -13,6 +14,7 @@ using Serilog;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
+using Utils.Tasking;
 
 namespace artifact.desktop;
 
@@ -80,9 +82,8 @@ public partial class App : Application
                     services.Configure<SignalRSettings>(context.Configuration.GetSection("AppSettings:SignalrSettings"));
 
                     services.AddSingleton(_ => Current.Dispatcher);
-                    services.AddSingleton<WeakReferenceMessenger>();
-                    services.AddSingleton<IMessenger, WeakReferenceMessenger>(provider => provider.GetRequiredService<WeakReferenceMessenger>());
-                    services.AddSingleton<ISignalRClient<IRealTimeMessage<ArtifactMessage>>, SignalRClient<ArtifactMessage>>();
+                    services.AddSingleton<IMessenger, WeakReferenceMessenger>();
+                    services.AddSingleton<ISignalRClient<ArtifactMessage>, SignalRClient<ArtifactMessage>>();
 
                 })
                 .ConfigureContainer<ContainerBuilder>((context, builder) =>

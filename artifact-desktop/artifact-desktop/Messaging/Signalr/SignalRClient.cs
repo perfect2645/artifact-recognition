@@ -1,6 +1,4 @@
 using artifact.desktop.Configurations;
-using artifact.shared.data;
-using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,13 +10,11 @@ using Utils.Tasking;
 
 namespace artifact.desktop.Messaging.Signalr
 {
-    //[Register(ServiceType = typeof(ISignalRClient<>), Lifetime = Lifetime.Singleton)]
-    internal class SignalRClient<TPayload> : ISignalRClient<IRealTimeMessage<TPayload>> where TPayload : notnull
+    public sealed class SignalRClient<TPayload> : ISignalRClient<TPayload>, IHostedService where TPayload : notnull
     {
         private readonly HubConnection _hubConnection;
-        private readonly ILogger<SignalRClient<IRealTimeMessage<TPayload>>> _logger;
+        private readonly ILogger<SignalRClient<TPayload>> _logger;
         private readonly SignalRSettings _settings;
-        private readonly IMessenger _messenger;
 
         // Persistent group set: automatically restored after reconnection
         private readonly HashSet<string> _joinedGroups = new();
@@ -31,19 +27,17 @@ namespace artifact.desktop.Messaging.Signalr
         public event Action<HubConnectionState>? StateChanged;
 
         /// <inheritdoc />
-        public event Action<IRealTimeMessage<IRealTimeMessage<TPayload>>>? MessageReceived;
+        public event Action<TPayload>? MessageReceived;
 
         /// <summary>
         /// Initializes a new instance. Performs only lightweight setup; no network I/O.
         /// </summary>
         public SignalRClient(
             IOptions<SignalRSettings> settings,
-            ILogger<SignalRClient<IRealTimeMessage<TPayload>>> logger,
-            IMessenger messenger)
+            ILogger<SignalRClient<TPayload>> logger)
         {
             _settings = settings.Value;
             _logger = logger;
-            _messenger = messenger;
 
             if (string.IsNullOrWhiteSpace(_settings.HubUrl))
                 throw new ArgumentException("SignalR Hub URL is not configured");
@@ -53,8 +47,6 @@ namespace artifact.desktop.Messaging.Signalr
             RegisterLifecycleEvents();
             // Register server-to-client message handlers
             RegisterMessageHandlers();
-
-            StartAsync().SafeFireAndForget();
         }
 
         private HubConnection BuildHubConnection()
@@ -146,7 +138,7 @@ namespace artifact.desktop.Messaging.Signalr
         private void RegisterMessageHandlers()
         {
             // Incoming chat message handler
-            _hubConnection.On<IRealTimeMessage<TPayload>>("ReceiveMessage", OnMessageReceived);
+            _hubConnection.On<TPayload>("ReceiveMessage", OnMessageReceived);
 
             // System-wide notification handler
             _hubConnection.On<string>("SystemNotice", notice =>
@@ -156,10 +148,10 @@ namespace artifact.desktop.Messaging.Signalr
             });
         }
 
-        private void OnMessageReceived(IRealTimeMessage<TPayload> message)
+        private void OnMessageReceived(TPayload message)
         {
-            _logger.LogDebug("Message received from [{message.Sender}], topic=[{message.Topic}]", message.Sender, message.Topic);
-            _messenger.Send(message);
+            _logger.LogDebug("Signalr message received : {@message}", message);
+            MessageReceived?.Invoke(message);
         }
 
         /// <summary>
@@ -241,7 +233,7 @@ namespace artifact.desktop.Messaging.Signalr
         }
 
         /// <inheritdoc />
-        public async Task SendMessageAsync(IRealTimeMessage<IRealTimeMessage<TPayload>> message, CancellationToken cancellationToken = default)
+        public async Task SendMessageAsync(TPayload message, CancellationToken cancellationToken = default)
         {
             // Auto-connect if not already connected
             if (CurrentState != HubConnectionState.Connected)
@@ -249,12 +241,12 @@ namespace artifact.desktop.Messaging.Signalr
 
             try
             {
-                await _hubConnection.InvokeAsync("SendMessage", new object[] { message.Sender, message.Topic, message.Message }, cancellationToken);
-                _logger.LogDebug("Message sent to target user: {Target}", message.Sender);
+                await _hubConnection.InvokeAsync("SendMessage", new object[] { message }, cancellationToken);
+                _logger.LogDebug("SignalR message sent: {message}", message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send message.");
+                _logger.LogError(ex, "Failed to send SignalR message: {message}", message);
                 throw;
             }
         }

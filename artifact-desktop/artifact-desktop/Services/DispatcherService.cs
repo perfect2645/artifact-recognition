@@ -1,12 +1,14 @@
 ﻿using System.Windows.Threading;
+using Utils.Ioc;
 
 namespace artifact.desktop.Services
 {
-    internal class WpfDispatcherService :IDispatcherService
+    [Register(ServiceType = typeof(IDispatcherService), Lifetime = Lifetime.Singleton)]
+    public class DispatcherService :IDispatcherService
     {
         private readonly Dispatcher _dispatcher;
 
-        public WpfDispatcherService(Dispatcher dispatcher)
+        public DispatcherService(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
         }

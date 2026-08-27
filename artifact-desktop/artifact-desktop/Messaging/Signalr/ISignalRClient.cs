@@ -1,5 +1,4 @@
-﻿using artifact.shared.data;
-using Microsoft.AspNetCore.SignalR.Client;
+﻿using Microsoft.AspNetCore.SignalR.Client;
 
 namespace artifact.desktop.Messaging.Signalr
 {
@@ -12,7 +11,7 @@ namespace artifact.desktop.Messaging.Signalr
 
         event Action<HubConnectionState> StateChanged;
 
-        event Action<IRealTimeMessage<TPayload>> MessageReceived;
+        event Action<TPayload> MessageReceived;
 
         /// <summary>
         /// Starts the hub connection asynchronously.
@@ -27,7 +26,7 @@ namespace artifact.desktop.Messaging.Signalr
         /// <summary>
         /// Sends a chat message to the specified target user.
         /// </summary>
-        Task SendMessageAsync(IRealTimeMessage<TPayload> message, CancellationToken cancellationToken = default);
+        Task SendMessageAsync(TPayload message, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Joins the specified group.
