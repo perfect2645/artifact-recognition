@@ -14,10 +14,13 @@ namespace artifact.service.domain.Controllers
     {
 
         [HttpPost]
-        [Route("signalr-artifact")]
-        public async Task<IActionResult> SendSignalrArtifact(string group, [FromBody] ArtifactMessage message)
+        [Route("signalr-artifact/{group}/{eventName}")]
+        public async Task<IActionResult> SendSignalrArtifact(
+            string group, 
+            string? eventName,
+            [FromBody] ArtifactMessage message)
         {
-            await realtimeService.SendGroupRealtimeAsync(group, message);
+            await realtimeService.SendGroupRealtimeAsync(group, eventName, message);
             logger.LogInformation("Received a POST request.");
             return Ok("Signalr artifact sent successfully!");
         }

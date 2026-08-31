@@ -2,8 +2,8 @@
 {
     public interface IRealtimeService<TPayload>
     {
-        Task SendRealtimeAsync(TPayload payload, CancellationToken cancellationToken = default);
-        Task SendGroupRealtimeAsync(string groupName, TPayload payload, CancellationToken cancellationToken = default);
+        Task SendRealtimeAsync(string? eventName, TPayload payload, CancellationToken cancellationToken = default);
+        Task SendGroupRealtimeAsync(string groupName, string? eventName, TPayload payload, CancellationToken cancellationToken = default);
 
         event Action<TPayload>? OnRealtimeMessageReceived;
     }

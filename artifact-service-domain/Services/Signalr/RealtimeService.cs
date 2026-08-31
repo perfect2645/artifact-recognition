@@ -15,15 +15,21 @@ namespace artifact.service.domain.Services.Signalr
 
         public event Action<ArtifactMessage>? OnRealtimeMessageReceived;
 
-        public async Task SendRealtimeAsync(ArtifactMessage payload, CancellationToken cancellationToken = default)
+        public async Task SendRealtimeAsync(string? eventName, ArtifactMessage payload, CancellationToken cancellationToken = default)
         {
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", payload, cancellationToken);
+            eventName = eventName ?? "ReceiveMessage";
+            await _hubContext.Clients.All.SendAsync(eventName, payload, cancellationToken);
             _logger.LogInformation("SignalR: Sent message to all clients: {Payload}", @payload);
         }
 
-        public async Task SendGroupRealtimeAsync(string groupName, ArtifactMessage payload, CancellationToken cancellationToken = default)
+        public async Task SendGroupRealtimeAsync(
+            string groupName,
+            string? eventName,
+            ArtifactMessage payload, 
+            CancellationToken cancellationToken = default)
         {
-            await _hubContext.Clients.Group(groupName).SendAsync("ReceiveMessage", payload, cancellationToken);
+            eventName = eventName ?? "ReceiveMessage";
+            await _hubContext.Clients.Group(groupName).SendAsync(eventName, payload, cancellationToken);
             _logger.LogInformation("SignalR: Sent message to group {GroupName}: {Payload}", groupName, @payload);
         }
 
