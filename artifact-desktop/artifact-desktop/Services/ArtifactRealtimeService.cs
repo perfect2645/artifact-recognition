@@ -1,5 +1,6 @@
 ﻿using artifact.desktop.Generic;
 using artifact.desktop.Messaging.Signalr;
+using artifact.shared;
 using artifact.shared.data;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -16,6 +17,7 @@ namespace artifact.desktop.Services
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             await signalRClient.StartAsync(cancellationToken);
+            await signalRClient.JoinGroupAsync(SharedConstants.SignalrClientGroup, cancellationToken);
             signalRClient.MessageReceived += OnArtifactMessageReceived;
         }
 

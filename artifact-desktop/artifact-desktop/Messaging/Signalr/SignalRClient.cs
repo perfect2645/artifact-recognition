@@ -18,7 +18,7 @@ namespace artifact.desktop.Messaging.Signalr
 
         // Persistent group set: automatically restored after reconnection
         private readonly HashSet<string> _joinedGroups = new();
-        private readonly object _groupLock = new();
+        private readonly Lock _groupLock = new();
 
         /// <inheritdoc />
         public HubConnectionState CurrentState => _hubConnection.State;
@@ -75,14 +75,14 @@ namespace artifact.desktop.Messaging.Signalr
                     };
                 })
                 // Step-based automatic reconnection policy
-                .WithAutomaticReconnect(new[]
-                {
-                TimeSpan.Zero,
-                TimeSpan.FromSeconds(2),
-                TimeSpan.FromSeconds(5),
-                TimeSpan.FromSeconds(10),
-                TimeSpan.FromSeconds(20)
-                })
+                .WithAutomaticReconnect(
+                [
+                    TimeSpan.Zero,
+                    TimeSpan.FromSeconds(2),
+                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(10),
+                    TimeSpan.FromSeconds(20)
+                ])
                 // Keep serialization rules fully aligned with the server (camelCase)
                 .AddJsonProtocol(options =>
                 {
@@ -257,7 +257,7 @@ namespace artifact.desktop.Messaging.Signalr
             if (CurrentState != HubConnectionState.Connected)
                 await StartAsync(cancellationToken);
 
-            await _hubConnection.InvokeAsync("JoinGroup", new object[] { groupName }, cancellationToken);
+            await _hubConnection.InvokeAsync("JoinGroup", groupName, cancellationToken);
 
             lock (_groupLock)
             {

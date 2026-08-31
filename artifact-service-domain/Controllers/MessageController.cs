@@ -12,15 +12,13 @@ namespace artifact.service.domain.Controllers
         ILogger<MessageController> logger,
         IRealtimeService<ArtifactMessage> realtimeService) : ControllerBase
     {
-        private readonly ILogger<MessageController> _logger = logger;
-        private readonly IRealtimeService<ArtifactMessage> _realtimeService = realtimeService;
 
         [HttpPost]
         [Route("signalr-artifact")]
         public async Task<IActionResult> SendSignalrArtifact(string group, [FromBody] ArtifactMessage message)
         {
-            await _realtimeService.SendGroupRealtimeAsync(group, message);
-            _logger.LogInformation("Received a POST request.");
+            await realtimeService.SendGroupRealtimeAsync(group, message);
+            logger.LogInformation("Received a POST request.");
             return Ok("Signalr artifact sent successfully!");
         }
     }

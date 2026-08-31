@@ -58,12 +58,9 @@ public partial class SingleImageVm : ObservableRecipient, IRecipient<ValueChange
     {
         _dispatcherService.InvokeOnUIAsync(() =>
         {
-            if (message.Value is ArtifactMessage artifactMessage)
-            {
-                OutputPath = artifactMessage.Message.OutputPath;
-                RecognitionStatus = artifactMessage.Message.RecognitionStatus;
-                ResetRecognitionStatus();
-            }
+            if (message.Value is not { } artifactMessage) return;
+            OutputPath = artifactMessage.Message.OutputPath;
+            RecognitionStatus = artifactMessage.Message.RecognitionStatus;
         }).SafeFireAndForget(onError: ex => _logger.LogError(ex, "Error Receive ArtifactMessage: {message} ", message));
     }
 }

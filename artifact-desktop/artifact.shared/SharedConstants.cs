@@ -3,5 +3,6 @@
     public static class SharedConstants
     {
         public const string SignalREndpoint = "/hubs/signalr";
+        public const string SignalrClientGroup = "ui";
     }
 }

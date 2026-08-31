@@ -45,6 +45,7 @@ public partial class App : Application
             {
                 AppHost.StopAsync().GetAwaiter().GetResult();
                 AppHost.Dispose();
+                Log.Fatal("AppHost stopped due to an exception: {ex.Message}", ex.Message);
             }
             return;
         }
