@@ -24,6 +24,7 @@
         string OutputPath,
         DateTime? UpdateTime,
         ArtifactStatus ArtifactStatus,
-        RecognitionStatus RecognitionStatus
+        RecognitionStatus RecognitionStatus,
+        string? Comments
     );
 }

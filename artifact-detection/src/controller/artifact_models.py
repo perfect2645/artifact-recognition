@@ -40,6 +40,7 @@ class Artifact:
     update_time: Optional[datetime]
     artifact_status: ArtifactStatus
     recognition_status: RecognitionStatus
+    comments: Optional[str]
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Artifact":
