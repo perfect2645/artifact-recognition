@@ -16,7 +16,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from controller.artifact_inference import ArtifactClassifier
-from controller.artifact_models import ArtifactPayload, ArtifactStatus
+from controller.artifact_models import ArtifactMessage, RecognitionStatus
 from controller.artifact_service import ArtifactRecognitionService
 from controller.webapi_client import WebApiClient
 from messaging.signalr_client import SignalRReceiver
@@ -48,10 +48,10 @@ class ArtifactWorker:
     def stop(self) -> None:
         self.receiver.stop()
 
-    def handle_message(self, event_name: str, payload: Any) -> None:
+    def handle_message(self, event_name: str, payload: ArtifactMessage) -> None:
         LOGGER.info("Received event %s", event_name)
         try:
-            artifact = ArtifactPayload.from_dict(self._extract_payload(payload))
+            artifact = ArtifactMessage.from_dict(self._extract_payload(payload))
             updated = self.service.process(artifact)
         except Exception as exc:
             LOGGER.exception("Artifact processing failed")
@@ -64,8 +64,8 @@ class ArtifactWorker:
 
     @staticmethod
     def _extract_payload(payload: Any) -> dict[str, Any]:
-        if isinstance(payload, dict) and "payload" in payload and isinstance(payload["payload"], dict):
-            return payload["payload"]
+        if isinstance(payload, dict) and "payload" in payload and isinstance(payload["message"], dict):
+            return payload["message"]
         if isinstance(payload, dict):
             return payload
         raise ValueError("SignalR payload must be a JSON object")
@@ -73,11 +73,12 @@ class ArtifactWorker:
     @staticmethod
     def _build_failed_payload(original_payload: Any, error_text: str) -> dict[str, Any]:
         try:
-            artifact = ArtifactPayload.from_dict(ArtifactWorker._extract_payload(original_payload))
+            artifact = ArtifactMessage.from_dict(ArtifactWorker._extract_payload(original_payload))
         except Exception:
-            artifact = ArtifactPayload(source_dicom_image_path="", comments=None)
+            artifact = ArtifactMessage()
 
-        artifact.status = ArtifactStatus.FAILED
+        LOGGER.exception("Failed to extract artifact from payload")
+        artifact.status = RecognitionStatus.FAILED
         artifact.comments = error_text
         return artifact.to_dict()
 

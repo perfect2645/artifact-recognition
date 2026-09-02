@@ -10,10 +10,10 @@
     public enum RecognitionStatus
     {
         Pending = 0,
-        Proceeding,
+        Processing,
         Completed,
-        Canceled,
-        Error,
+        Cancelled,
+        Failed
     }
 
 
