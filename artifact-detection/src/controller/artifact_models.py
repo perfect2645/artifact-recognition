@@ -26,6 +26,33 @@ class RecognitionStatus(Enum):
     CANCELLED = 3
     FAILED = 4
 
+def _enum_json_value(value: Enum) -> str:
+    return "".join(part.title() for part in value.name.split("_"))
+
+def _parse_enum[EnumT: Enum](enum_type: type[EnumT], raw_value: object, field_name: str) -> EnumT:
+    if isinstance(raw_value, enum_type):
+        return raw_value
+    if isinstance(raw_value, int) and not isinstance(raw_value, bool):
+        try:
+            return enum_type[raw_value]
+        except KeyError as exc:
+            raise ValueError(f"Invalid {field_name}: {raw_value}") from exc
+    
+    if isinstance(raw_value, str):
+        text = raw_value.strip()
+        if text.lstrip("+-").isdigit():
+            return _parse_enum(enum_type, int(text), field_name)
+        
+        normalized_text = text.replace("_", "").casefold()
+        for member in enum_type:
+            if normalized_text in {
+                member.name.replace("_", "").casefold(),
+                _enum_json_value(member).casefold()
+            }:
+                return member
+
+    raise ValueError(f"Invalid {field_name}: {raw_value}")
+
 
 @dataclass(frozen=True)
 class Artifact:
@@ -76,14 +103,21 @@ class Artifact:
 
         # Parse ISO format datetime string
         raw_update_time = _get_value("update_time", "updateTime")
-        update_time = datetime.fromisoformat(raw_update_time) if raw_update_time else None
+        if isinstance(raw_update_time, datetime):
+            update_time = raw_update_time
+        elif isinstance(raw_update_time, str) and raw_update_time:
+            update_time = datetime.fromisoformat(raw_update_time)
+        elif raw_update_time is None or raw_update_time == "":
+            update_time = None
+        else:
+            raise ValueError(f"Invalid update_time: {raw_update_time}")
 
         # Convert raw integer values to enum instances
         raw_artifact_status = _get_value("artifact_status", "artifactStatus")
-        artifact_status = ArtifactStatus(raw_artifact_status)
+        artifact_status = _parse_enum(ArtifactStatus, raw_artifact_status, "artifactStatus")
 
         raw_recognition_status = _get_value("recognition_status", "recognitionStatus")
-        recognition_status = RecognitionStatus(raw_recognition_status)
+        recognition_status = _parse_enum(RecognitionStatus, raw_recognition_status, "recognitionStatus")
 
         # Frozen dataclass must be fully constructed in one call
         return cls(
@@ -94,11 +128,21 @@ class Artifact:
             update_time=update_time,
             artifact_status=artifact_status,
             recognition_status=recognition_status,
+            comments=_get_value("comments", "Comments")
         )
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the Artifact instance to a snake_case dictionary for serialization."""
-        return asdict(self)
+        return {
+            "artifact_id": self.artifact_id,
+            "name": self.name,
+            "input_path": self.input_path,
+            "output_path": self.output_path,
+            "update_time": self.update_time.isoformat() if self.update_time else None,
+            "artifact_status": _enum_json_value(self.artifact_status),
+            "recognition_status": _enum_json_value(self.recognition_status),
+            "comments": self.comments
+        }
 
 
 @dataclass(frozen=True)

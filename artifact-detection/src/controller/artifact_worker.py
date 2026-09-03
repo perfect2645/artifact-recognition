@@ -7,6 +7,9 @@ import logging
 import signal
 import sys
 import time
+from dataclasses import replace
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +27,9 @@ from messaging.signalr_client import SignalRReceiver
 
 LOGGER = logging.getLogger("artifact-worker")
 
+def _from_status(status: Enum) -> str:
+    status_name = "".join(part.title() for part in status.name.split("_"))
+    return f"{status.value} : {status_name}"
 
 class ArtifactWorker:
     def __init__(
@@ -49,18 +55,35 @@ class ArtifactWorker:
         self.receiver.stop()
 
     def handle_message(self, event_name: str, payload: ArtifactMessage) -> None:
-        LOGGER.info("Received event %s", event_name)
+        artifact_message: ArtifactMessage | None = None
         try:
-            artifact = ArtifactMessage.from_dict(self._extract_payload(payload))
-            updated = self.service.process(artifact)
-        except Exception as exc:
-            LOGGER.exception("Artifact processing failed")
-            failed_payload = self._build_failed_payload(payload, str(exc))
-            self.webapi_client.post_result(failed_payload)
-            return
+            artifact_message = ArtifactMessage.from_dict(self._extract_payload(payload))
 
-        self.webapi_client.post_result(updated.to_dict())
-        LOGGER.info("Artifact result posted for %s", updated.source_dicom_image_path)
+            LOGGER.info(
+                "Artifact received: event=%s; artifactId=%s; inputPath=%s "
+                "ArtifactStatus=%s; RecognitionStatus=%s",
+                event_name,
+                artifact_message.message.artifact_id,
+                artifact_message.message.input_path,
+                _from_status(artifact_message.message.artifact_status),
+                _from_status(artifact_message.message.recognition_status)
+            )
+            artifact_message = replace(
+                artifact_message,
+                message=self.service.process(artifact_message.message)
+            )
+        except Exception as exc:
+            LOGGER.exception("Failed to process artifact: event=%s", event_name)
+            if artifact_message is None:
+                LOGGER.exception("Failed to extract artifact from payload: event=%s", event_name)
+                return
+            failed_message = self._build_failed_message(artifact_message, str(exc))
+            self._post_result(failed_message, "failed")
+            return
+        self._post_result(
+            artifact_message,
+            artifact_message.message.recognition_status.name.lower()
+        )
 
     @staticmethod
     def _extract_payload(payload: Any) -> dict[str, Any]:
@@ -71,17 +94,35 @@ class ArtifactWorker:
         raise ValueError("SignalR payload must be a JSON object")
 
     @staticmethod
-    def _build_failed_payload(original_payload: Any, error_text: str) -> dict[str, Any]:
+    def _build_failed_message(artifact_message: ArtifactMessage, error_text: str) -> ArtifactMessage:
+        failed_artifact = replace(
+            artifact_message.message,
+            recognition_status=RecognitionStatus.FAILED,
+            comments=error_text,
+            update_time=datetime.now().astimezone()
+        )
+        return replace(artifact_message, message=failed_artifact)
+    
+    def _post_result(self, artifact_message: ArtifactMessage, outcome: str) -> None:
         try:
-            artifact = ArtifactMessage.from_dict(ArtifactWorker._extract_payload(original_payload))
+            self.webapi_client.post_result(artifact_message.to_dict())
         except Exception:
-            artifact = ArtifactMessage()
-
-        LOGGER.exception("Failed to extract artifact from payload")
-        artifact.status = RecognitionStatus.FAILED
-        artifact.comments = error_text
-        return artifact.to_dict()
-
+            LOGGER.exception(
+                "Artifact result post failed: outcome=%s; artifactId=%s; inputPath=%s",
+                  outcome, 
+                  artifact_message.message.artifact_id,
+                  artifact_message.message.input_path
+            )
+            return
+        LOGGER.info(
+            "Artifact result posted: outcome=%s; artifactId=%s; inputPath=%s; "
+            "ArtifactStatus=%s; RecognitionStatus=%s",
+            outcome,
+            artifact_message.message.artifact_id,
+            artifact_message.message.input_path,
+            _from_status(artifact_message.message.artifact_status),
+            _from_status(artifact_message.message.recognition_status)
+        )
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="SignalR artifact recognition worker")
