@@ -59,19 +59,18 @@ class ArtifactWorker:
         try:
             artifact_message = ArtifactMessage.from_dict(self._extract_payload(payload))
 
-            LOGGER.info(
-                "Artifact received: event=%s; artifactId=%s; inputPath=%s "
-                "ArtifactStatus=%s; RecognitionStatus=%s",
-                event_name,
-                artifact_message.message.artifact_id,
-                artifact_message.message.input_path,
-                _from_status(artifact_message.message.artifact_status),
-                _from_status(artifact_message.message.recognition_status)
+            self._log_artifact_message(
+                "received", artifact_message, "event", event_name
             )
             artifact_message = replace(
                 artifact_message,
                 message=self.service.process(artifact_message.message)
             )
+
+            self._log_artifact_message(
+                "proceeded", artifact_message, "event", event_name
+            )
+
         except Exception as exc:
             LOGGER.exception("Failed to process artifact: event=%s", event_name)
             if artifact_message is None:
@@ -100,6 +99,25 @@ class ArtifactWorker:
             update_time=datetime.now().astimezone()
         )
         return replace(artifact_message, message=failed_artifact)
+
+    @staticmethod
+    def _log_artifact_message(
+        action: str,
+        artifact_message: ArtifactMessage,
+        context_name: str,
+        context_value: str,
+    ) -> None:
+        LOGGER.info(
+            "Artifact %s: %s=%s; artifactId=%s; inputPath=%s "
+            "ArtifactStatus=%s; RecognitionStatus=%s",
+            action,
+            context_name,
+            context_value,
+            artifact_message.message.artifact_id,
+            artifact_message.message.input_path,
+            _from_status(artifact_message.message.artifact_status),
+            _from_status(artifact_message.message.recognition_status),
+        )
     
     def _post_result(self, artifact_message: ArtifactMessage, outcome: str) -> None:
         try:
@@ -112,14 +130,8 @@ class ArtifactWorker:
                   artifact_message.message.input_path
             )
             return
-        LOGGER.info(
-            "Artifact result posted: outcome=%s; artifactId=%s; inputPath=%s; "
-            "ArtifactStatus=%s; RecognitionStatus=%s",
-            outcome,
-            artifact_message.message.artifact_id,
-            artifact_message.message.input_path,
-            _from_status(artifact_message.message.artifact_status),
-            _from_status(artifact_message.message.recognition_status)
+        self._log_artifact_message(
+            "result posted", artifact_message, "outcome", outcome
         )
 
 def parse_args() -> argparse.Namespace:
