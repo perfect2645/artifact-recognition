@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
+from shutil import copy2
 
 from controller.artifact_inference import ArtifactClassifier
 from controller.artifact_models import Artifact, ArtifactStatus, RecognitionStatus
@@ -38,6 +39,10 @@ class ArtifactRecognitionService:
         artifact_status = (
             ArtifactStatus.ARTIFACT_EXISTS if bool(result["hasArtifact"]) else ArtifactStatus.NO_ARTIFACT
         )
+        if artifact_status is ArtifactStatus.ARTIFACT_EXISTS:
+            artifacts_output_dir = source_path.parent / "output" / "artifacts"
+            artifacts_output_dir.mkdir(parents=True, exist_ok=True)
+            copy2(source_path, artifacts_output_dir / source_path.name)
         comments = (
             f"predictedClass={result['predictedClass']}; "
             f"artifactProb={result['probabilities']['artifact']:.4f}; "
@@ -56,4 +61,4 @@ class ArtifactRecognitionService:
     def _resolve_output_path(self, artifact: Artifact, source_path: Path) -> Path:
         if artifact.output_path:
             return Path(artifact.output_path)
-        return self.bitmap_output_dir / f"{source_path.stem}.png"
+        return source_path.parent / "output" / "converted" / f"{source_path.stem}.png"
