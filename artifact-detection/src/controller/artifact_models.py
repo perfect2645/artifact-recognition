@@ -34,8 +34,8 @@ def _parse_enum[EnumT: Enum](enum_type: type[EnumT], raw_value: object, field_na
         return raw_value
     if isinstance(raw_value, int) and not isinstance(raw_value, bool):
         try:
-            return enum_type[raw_value]
-        except KeyError as exc:
+            return enum_type(raw_value)
+        except ValueError as exc:
             raise ValueError(f"Invalid {field_name}: {raw_value}") from exc
     
     if isinstance(raw_value, str):

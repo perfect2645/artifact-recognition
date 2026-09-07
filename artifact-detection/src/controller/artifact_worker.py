@@ -87,8 +87,6 @@ class ArtifactWorker:
 
     @staticmethod
     def _extract_payload(payload: Any) -> dict[str, Any]:
-        if isinstance(payload, dict) and "payload" in payload and isinstance(payload["message"], dict):
-            return payload["message"]
         if isinstance(payload, dict):
             return payload
         raise ValueError("SignalR payload must be a JSON object")
