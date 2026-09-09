@@ -132,15 +132,15 @@ class Artifact:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert the Artifact instance to a snake_case dictionary for serialization."""
+        """Convert the Artifact instance to the WebAPI JSON contract."""
         return {
-            "artifact_id": self.artifact_id,
+            "artifactId": self.artifact_id,
             "name": self.name,
-            "input_path": self.input_path,
-            "output_path": self.output_path,
-            "update_time": self.update_time.isoformat() if self.update_time else None,
-            "artifact_status": _enum_json_value(self.artifact_status),
-            "recognition_status": _enum_json_value(self.recognition_status),
+            "inputPath": self.input_path,
+            "outputPath": self.output_path,
+            "updateTime": self.update_time.isoformat() if self.update_time else None,
+            "artifactStatus": self.artifact_status.value,
+            "recognitionStatus": self.recognition_status.value,
             "comments": self.comments
         }
 
@@ -198,7 +198,7 @@ class ArtifactMessage:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert the ArtifactMessage instance to a snake_case dictionary for serialization."""
+        """Convert the message to the WebAPI JSON contract."""
         return {
             "sender": self.sender,
             "topic": self.topic,
