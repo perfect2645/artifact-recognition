@@ -147,7 +147,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--access-token", default=None)
     parser.add_argument(
         "--log-level",
-        default="DEBUG",
+        default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     )
     return parser.parse_args()

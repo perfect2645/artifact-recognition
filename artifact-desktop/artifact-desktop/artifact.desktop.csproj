@@ -34,6 +34,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\..\CSharp\Laboratory\Logging\Logging.csproj" />
+      <ProjectReference Include="..\..\..\..\CSharp\Laboratory\Messaging\Messaging.Client.perfect2645.csproj" />
       <ProjectReference Include="..\..\..\..\CSharp\Laboratory\Utils\Utils.csproj" />
       <ProjectReference Include="..\artifact.shared\artifact.shared.csproj" />
     </ItemGroup>
