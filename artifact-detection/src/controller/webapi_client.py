@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 from urllib import request
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class WebApiClient:
@@ -21,7 +25,19 @@ class WebApiClient:
         if self.access_token:
             headers["Authorization"] = f"Bearer {self.access_token}"
 
-        req = request.Request(self.result_url, data=body, headers=headers, method="POST")
-        with request.urlopen(req) as response:
-            if response.status >= 400:
-                raise RuntimeError(f"WebAPI returned status {response.status}")
+        req = request.Request(self.result_url, data=body, headers=headers, method="PUT")
+
+        LOGGER.debug("Posting result to WebAPI: url=%s, body=%s", self.result_url, body.decode("utf-8"))
+
+        try:
+            with request.urlopen(req) as response:
+                response_body = response.read().decode("utf-8", errors="replace")
+                if response.status >= 400:
+                    raise RuntimeError(
+                        f"WebAPI returned status {response.status}: {response_body}"
+                    )
+        except request.HTTPError as exc:
+            response_body = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(
+                f"WebAPI returned status {exc.code}: {response_body}"
+            ) from exc

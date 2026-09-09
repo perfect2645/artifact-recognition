@@ -64,6 +64,7 @@ class ArtifactWorker:
             )
             artifact_message = replace(
                 artifact_message,
+                sender="model",
                 message=self.service.process(artifact_message.message)
             )
 
@@ -72,16 +73,21 @@ class ArtifactWorker:
             )
 
         except Exception as exc:
-            LOGGER.exception("Failed to process artifact: event=%s", event_name)
-            if artifact_message is None:
-                LOGGER.exception("Failed to extract artifact from payload: event=%s", event_name)
-                return
-            failed_message = self._build_failed_message(artifact_message, str(exc))
-            self._post_result(failed_message, "failed")
+            self._handle_failure(artifact_message, exc)
             return
-        self._post_result(
-            artifact_message,
-            artifact_message.message.recognition_status.name.lower()
+
+        self._post_result(artifact_message)       
+
+    def _handle_failure(
+        self,
+        artifact_message: ArtifactMessage | None,
+        exc: Exception
+    ) -> None:
+        error_text = f"Artifact recognition failed: {exc}"
+        LOGGER.exception(
+            "Artifact recognition failed: artifactId=%s; inputPath=%s",
+            artifact_message.message.artifact_id if artifact_message else "N/A",
+            artifact_message.message.input_path if artifact_message else "N/A"
         )
 
     @staticmethod
@@ -119,19 +125,14 @@ class ArtifactWorker:
             _from_status(artifact_message.message.recognition_status),
         )
     
-    def _post_result(self, artifact_message: ArtifactMessage, outcome: str) -> None:
+    def _post_result(self, artifact_message: ArtifactMessage) -> None:
         try:
             self.webapi_client.post_result(artifact_message.to_dict())
-        except Exception:
-            LOGGER.exception(
-                "Artifact result post failed: outcome=%s; artifactId=%s; inputPath=%s",
-                  outcome, 
-                  artifact_message.message.artifact_id,
-                  artifact_message.message.input_path
-            )
+        except Exception as exc:
+            self._handle_failure(artifact_message, exc)
             return
         self._log_artifact_message(
-            "result posted", artifact_message, "outcome", outcome
+            "result posted", artifact_message, "event", "post_result"
         )
 
 def parse_args() -> argparse.Namespace:
@@ -140,13 +141,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--event-name", default="recognition")
     parser.add_argument("--group-name", default="recognition-model")
     parser.add_argument("--join-group-method", default="JoinGroup")
-    parser.add_argument("--result-url", default="https://localhost:7092/api/artifact/result")
+    parser.add_argument("--result-url", default="https://localhost:7092/api/artifact")
     parser.add_argument("--model-path", type=Path, default=SRC_DIR / "model" / "best_model.pth")
     parser.add_argument("--bitmap-output-dir", type=Path, default=SRC_DIR / "runtime" / "converted")
     parser.add_argument("--access-token", default=None)
     parser.add_argument(
         "--log-level",
-        default="INFO",
+        default="DEBUG",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     )
     return parser.parse_args()
