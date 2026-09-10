@@ -1,14 +1,31 @@
-﻿using Messaging.Http.Client;
+﻿using artifact.shared.data;
+using Messaging.Http.Client;
+using Messaging.Http.Exceptions;
+using Microsoft.Extensions.Logging;
 using System.Net.Http;
-using Utils.Ioc;
 
 namespace artifact.desktop.Messaging.Http
 {
-    [Register(ServiceType = typeof(HttpApiClient), Lifetime = Lifetime.Singleton)]
-    public class ArtifactHttpClient : HttpApiClient
+    public class ArtifactHttpClient(
+        HttpClient httpClient,
+        ILogger<ArtifactHttpClient> logger) : HttpApiClient(httpClient)
     {
-        public ArtifactHttpClient(HttpClient httpClient) : base(httpClient)
+        public async Task<Artifact?> CreateArtifact(ArtifactHttpContent content)
         {
+            try
+            {
+                return await PostAsync<Artifact>(content);
+            }
+            catch (HttpException ex)
+            {
+                logger.LogError(ex, "HttpException occurred while creating artifact.");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Unexpected error occurred while creating artifact.");
+                return null;
+            }
         }
     }
 }

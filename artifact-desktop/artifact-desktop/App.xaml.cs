@@ -1,5 +1,6 @@
 ﻿using artifact.desktop.Configurations;
 using artifact.desktop.Generic;
+using artifact.desktop.Messaging.Http;
 using artifact.desktop.Messaging.Signalr;
 using artifact.desktop.Views;
 using artifact.shared.data;
@@ -7,6 +8,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using Logging;
+using Messaging.Http.Ioc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -85,6 +87,7 @@ public partial class App : Application
                     services.AddSingleton(_ => Current.Dispatcher);
                     services.AddSingleton<IMessenger, WeakReferenceMessenger>();
                     services.AddSingleton<ISignalRClient<ArtifactMessage>, SignalRClient<ArtifactMessage>>();
+                    services.AddConfiguratedHttpClient<ArtifactHttpClient>(Constants.ArtifactHttpApiKey);
 
                 })
                 .ConfigureContainer<ContainerBuilder>((context, builder) =>
