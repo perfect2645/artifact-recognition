@@ -1,3 +1,4 @@
+using artifact.desktop.Messaging.Http;
 using artifact.desktop.Services;
 using artifact.shared.data;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -20,13 +21,16 @@ public partial class SingleImageVm : ObservableRecipient, IRecipient<ValueChange
 
     private readonly IDispatcherService _dispatcherService;
     private readonly ILogger _logger;
+    private readonly ArtifactHttpClient _artifactHttpClient;
 
 
     public SingleImageVm(IMessenger messenger,
         IDispatcherService dispatcherService,
+        ArtifactHttpClient artifactHttpClient,
         ILogger<SingleImageVm> logger) : base(messenger)
     {
         _dispatcherService = dispatcherService;
+        _artifactHttpClient = artifactHttpClient;
         _logger = logger;
         ResetRecognitionStatus();
         IsActive = true;
@@ -45,13 +49,12 @@ public partial class SingleImageVm : ObservableRecipient, IRecipient<ValueChange
     [RelayCommand(CanExecute = nameof(CanExecuteStart))]
     private async Task OnStart()
     {
-        RecognitionStatus = RecognitionStatus.Proceeding;
+        RecognitionStatus = RecognitionStatus.Pending;
 
-        await Task.Delay(2000);
-        
-        RecognitionStatus = RecognitionStatus.Completed;
+        var artifactContent = new ArtifactHttpContent();
+        var artifact = await _artifactHttpClient.CreateArtifact(artifactContent);
 
-        RecognitionResult = "Ok";
+        RecognitionResult = artifact?.Comments;
     }
 
     public void Receive(ValueChangedMessage<ArtifactMessage> message)
