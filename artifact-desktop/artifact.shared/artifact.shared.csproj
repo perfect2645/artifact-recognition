@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\CSharp\Laboratory\Messaging\Messaging.Client.perfect2645.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -8,13 +8,13 @@ namespace artifact.desktop.Messaging.Http
 {
     public class ArtifactHttpClient(
         HttpClient httpClient,
-        ILogger<ArtifactHttpClient> logger) : HttpApiClient(httpClient)
+        ILogger<ArtifactHttpClient> logger) : HttpApiClient(httpClient), IArtifactHttpClient
     {
-        public async Task<Artifact?> CreateArtifact(ArtifactHttpContent content)
+        public async Task<Artifact?> CreateArtifact(ArtifactHttpContent content, CancellationToken cancellationToken = default)
         {
             try
             {
-                return await PostAsync<Artifact>(content);
+                return await PostAsync<Artifact>(content, cancellationToken);
             }
             catch (HttpException ex)
             {

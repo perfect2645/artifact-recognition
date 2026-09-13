@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
+using System.IO;
 using Utils.Ioc;
 using Utils.Tasking;
 
@@ -21,16 +22,16 @@ public partial class SingleImageVm : ObservableRecipient, IRecipient<ValueChange
 
     private readonly IDispatcherService _dispatcherService;
     private readonly ILogger _logger;
-    private readonly ArtifactHttpClient _artifactHttpClient;
+    private readonly RecognitionService _recognitionService;
 
 
     public SingleImageVm(IMessenger messenger,
         IDispatcherService dispatcherService,
-        ArtifactHttpClient artifactHttpClient,
+        RecognitionService recognitionService,
         ILogger<SingleImageVm> logger) : base(messenger)
     {
         _dispatcherService = dispatcherService;
-        _artifactHttpClient = artifactHttpClient;
+        _recognitionService = recognitionService;
         _logger = logger;
         ResetRecognitionStatus();
         IsActive = true;
@@ -41,21 +42,33 @@ public partial class SingleImageVm : ObservableRecipient, IRecipient<ValueChange
         RecognitionStatus = RecognitionStatus.Pending;
     }
 
+    #region Recognition process
+
     private bool CanExecuteStart()
     {
         return true;
     }
     
-    [RelayCommand(CanExecute = nameof(CanExecuteStart))]
-    private async Task OnStart()
+    [RelayCommand(CanExecute = nameof(CanExecuteStart), IncludeCancelCommand = true)]
+    private async Task OnStart(CancellationToken cancellationToken)
     {
         RecognitionStatus = RecognitionStatus.Pending;
 
-        var artifactContent = new ArtifactHttpContent();
-        var artifact = await _artifactHttpClient.CreateArtifact(artifactContent);
-
-        RecognitionResult = artifact?.Comments;
+        await ProceedRecognitionAsync(cancellationToken);
     }
+
+    private async Task ProceedRecognitionAsync(CancellationToken cancellationToken)
+    {
+        var folderPath = Path.GetDirectoryName(SelectedImagePath);
+        if (folderPath is null)
+        {
+            _logger.LogError("Folder path is null for selected image path: {SelectedImagePath}", SelectedImagePath);
+            return;
+        }
+        var result = await _recognitionService.CreateArtifacts(folderPath, cancellationToken);
+    }
+
+    #endregion Recognition process
 
     public void Receive(ValueChangedMessage<ArtifactMessage> message)
     {
