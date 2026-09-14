@@ -4,6 +4,6 @@ namespace artifact.desktop.Services
 {
     public interface IRecognitionService
     {
-        Task<ArtifactHttpResponse> CreateArtifactsAsync(string inputFolderPath, CancellationToken cancellationToken);
+        ValueTask<ArtifactHttpResponse> CreateArtifactsAsync(string inputFolderPath, CancellationToken cancellationToken);
     }
 }

@@ -74,7 +74,7 @@ public partial class ImageUploadControl : UserControl
         e.Handled = true;
         var dialog = new OpenFileDialog
         {
-            Filter = "image|*.jpg;*.jpeg;*.png;*.bmp;*.webp",
+            Filter = "image|*.dcm;*.jpg;*.jpeg;*.png;*.bmp;*.webp",
             Title = "Select an image",
             Multiselect = false
         };
