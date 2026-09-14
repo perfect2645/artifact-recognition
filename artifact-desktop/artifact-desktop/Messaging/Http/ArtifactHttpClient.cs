@@ -10,7 +10,7 @@ namespace artifact.desktop.Messaging.Http
         HttpClient httpClient,
         ILogger<ArtifactHttpClient> logger) : HttpApiClient(httpClient), IArtifactHttpClient
     {
-        public async Task<Artifact?> CreateArtifact(ArtifactHttpContent content, CancellationToken cancellationToken = default)
+        public async Task<Artifact?> CreateArtifactAsync(ArtifactHttpContent content, CancellationToken cancellationToken = default)
         {
             try
             {

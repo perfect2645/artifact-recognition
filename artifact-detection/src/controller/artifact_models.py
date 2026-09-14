@@ -21,10 +21,12 @@ class ArtifactStatus(Enum):
 class RecognitionStatus(Enum):
     """Enumeration representing the processing state of artifact recognition."""
     PENDING = 0
-    PROCESSING = 1
-    COMPLETED = 2
-    CANCELLED = 3
-    FAILED = 4
+    CREATING = 1
+    CREATED = 2
+    PROCESSING = 3
+    COMPLETED = 4
+    CANCELLED = 5
+    FAILED = 6
 
 def _enum_json_value(value: Enum) -> str:
     return "".join(part.title() for part in value.name.split("_"))

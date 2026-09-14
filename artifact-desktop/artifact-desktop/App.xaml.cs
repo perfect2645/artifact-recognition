@@ -43,12 +43,9 @@ public partial class App : Application
         catch (Exception ex)
         {
             Log.Logger.Error("An error occurred while starting AppHost: {ex.Message}", ex.Message);
-            if (AppHost != null)
-            {
-                AppHost.StopAsync().GetAwaiter().GetResult();
-                AppHost.Dispose();
-                Log.Fatal("AppHost stopped due to an exception: {ex.Message}", ex.Message);
-            }
+            AppHost.StopAsync().GetAwaiter().GetResult();
+            AppHost.Dispose();
+            Log.Fatal("AppHost stopped due to an exception: {ex.Message}", ex.Message);
             return;
         }
 
@@ -104,7 +101,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            Log.Logger.Error("An error occurred while creating the host builder: {ex.Message}", ex.Message);
+            Log.Logger.Error(ex, "An error occurred while creating the host builder.");
             throw;
         }
     }
@@ -128,7 +125,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            Log.Error(ex.Message);
+            Log.Error(ex, "An error occurred while exiting the application.");
         }
 
         base.OnExit(e);
@@ -138,7 +135,7 @@ public partial class App : Application
 
     private void UnHandledExceptionHandler(object sender, DispatcherUnhandledExceptionEventArgs args)
     {
-        Log.Error($"An unhandled exception occurred: {args.Exception?.Message}");
+        Log.Error(args.Exception, "An unhandled exception occurred: {Message}", args.Exception?.Message);
         args.Handled = true;
     }
 

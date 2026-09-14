@@ -65,7 +65,9 @@ public partial class SingleImageVm : ObservableRecipient, IRecipient<ValueChange
             _logger.LogError("Folder path is null for selected image path: {SelectedImagePath}", SelectedImagePath);
             return;
         }
-        var result = await _recognitionService.CreateArtifacts(folderPath, cancellationToken);
+
+        RecognitionStatus = RecognitionStatus.Creating;
+        var result = await _recognitionService.CreateArtifactsAsync(folderPath, cancellationToken);
     }
 
     #endregion Recognition process
