@@ -1,4 +1,5 @@
 using artifact.desktop.Configurations;
+using Messaging.Http.Exceptions;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -206,9 +207,8 @@ namespace artifact.desktop.Messaging.Signalr
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to establish SignalR connection.");
                 RaiseStateChanged();
-                throw;
+                throw new HttpException(ex, "Failed to establish SignalR connection.", HttpStatus.ServiceUnavailable);
             }
         }
 

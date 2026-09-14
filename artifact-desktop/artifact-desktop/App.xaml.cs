@@ -8,6 +8,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using Logging;
+using Messaging.Http.Exceptions;
 using Messaging.Http.Ioc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,14 +17,13 @@ using Serilog;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
-using Utils.Tasking;
 
 namespace artifact.desktop;
 
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
-public partial class App : Application
+public partial class App
 {
 
     public static IHost AppHost { get; private set; } = null!;
@@ -40,12 +40,16 @@ public partial class App : Application
             AppHost.Start();
 
         }
+        catch (HttpException ex)
+        {
+            Log.Logger.Error(ex, "An error occurred while starting AppHost.");
+        }
         catch (Exception ex)
         {
-            Log.Logger.Error("An error occurred while starting AppHost: {ex.Message}", ex.Message);
+            Log.Logger.Error(ex, "An error occurred while starting AppHost.");
             AppHost.StopAsync().GetAwaiter().GetResult();
             AppHost.Dispose();
-            Log.Fatal("AppHost stopped due to an exception: {ex.Message}", ex.Message);
+            Log.Fatal(ex, "AppHost stopped due to an exception: {ex.Message}", ex.Message);
             return;
         }
 
@@ -84,7 +88,7 @@ public partial class App : Application
                     services.AddSingleton(_ => Current.Dispatcher);
                     services.AddSingleton<IMessenger, WeakReferenceMessenger>();
                     services.AddSingleton<ISignalRClient<ArtifactMessage>, SignalRClient<ArtifactMessage>>();
-                    services.AddConfiguratedHttpClient<ArtifactHttpClient>(Constants.ArtifactHttpApiKey);
+                    services.AddConfiguratedHttpClient<IArtifactHttpClient, ArtifactHttpClient>(Constants.ArtifactHttpApiKey, context.Configuration);
 
                 })
                 .ConfigureContainer<ContainerBuilder>((context, builder) =>
@@ -141,8 +145,7 @@ public partial class App : Application
 
     private void OnAppDomainUnhandledException(object? sender, UnhandledExceptionEventArgs args)
     {
-        var ex = args.ExceptionObject as Exception;
-        if (ex != null)
+        if (args.ExceptionObject is Exception ex)
         {
             Log.Error(ex, "An unhandled AppDomain exception occurred: {Message}", ex.Message);
         }

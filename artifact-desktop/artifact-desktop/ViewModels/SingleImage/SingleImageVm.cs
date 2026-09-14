@@ -22,12 +22,12 @@ public partial class SingleImageVm : ObservableRecipient, IRecipient<ValueChange
 
     private readonly IDispatcherService _dispatcherService;
     private readonly ILogger _logger;
-    private readonly RecognitionService _recognitionService;
+    private readonly IRecognitionService _recognitionService;
 
 
     public SingleImageVm(IMessenger messenger,
         IDispatcherService dispatcherService,
-        RecognitionService recognitionService,
+        IRecognitionService recognitionService,
         ILogger<SingleImageVm> logger) : base(messenger)
     {
         _dispatcherService = dispatcherService;
