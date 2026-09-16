@@ -19,6 +19,12 @@ namespace artifact.desktop.Controls
         [ObservableProperty]
         private string? filesSearchPattern;
 
+        [ObservableProperty]
+        private string[]? gatheredFiles = [];
+
+        [ObservableProperty]
+        private int fileCount;
+
         [RelayCommand]
         private void OnOpenFolderDialog()
         {
@@ -36,30 +42,35 @@ namespace artifact.desktop.Controls
 
             if (EnableGatherFiles)
             {
-                GatherFiles();
+                var (files, count) = GatherFiles();
+                GatheredFiles = files;
+                FileCount = count;
             }
         }
 
-        private void GatherFiles()
+        private (string[], int) GatherFiles()
         {
             try
             {
-                IEnumerable<string> dcmFiles = Directory.EnumerateFiles(
+                var files = Directory.EnumerateFiles(
                     path: SelectedFolderPath,
-                    searchPattern: "*.dcm",
+                    searchPattern: FilesSearchPattern ?? "*.*",
                     searchOption: SearchOption.AllDirectories
-                );
+                ).ToArray();
 
-                foreach (string dcmFilePath in dcmFiles)
-                {
-
-                }
+                return (files, files.Length);
             }
             catch (DirectoryNotFoundException)
             {
+                return (Array.Empty<string>(), 0);
             }
             catch (UnauthorizedAccessException)
             {
+                return (Array.Empty<string>(), 0);
+            }
+            catch (IOException)
+            {
+                return (Array.Empty<string>(), 0);
             }
         }
     }

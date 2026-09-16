@@ -1,4 +1,3 @@
-using artifact.desktop.Messaging.Http;
 using artifact.desktop.Services;
 using artifact.shared.data;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,7 +9,7 @@ using System.IO;
 using Utils.Ioc;
 using Utils.Tasking;
 
-namespace artifact.desktop.ViewModels.SingleImage;
+namespace artifact.desktop.ViewModels;
 
 [Register(ServiceType = typeof(SingleImageVm))]
 public partial class SingleImageVm : ObservableRecipient, IRecipient<ValueChangedMessage<ArtifactMessage>>

@@ -7,6 +7,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/artifact.desktop;component/Generic/MuiStyles.xaml" />
                 <ResourceDictionary Source="/Styles/Generic.xaml" />
+                <ResourceDictionary Source="/Views/ViewTemplate.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
