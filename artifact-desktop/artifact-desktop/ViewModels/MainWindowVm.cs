@@ -12,9 +12,9 @@ public partial class MainWindowVm : ObservableObject
 
     public IReadOnlyList<NavigationItem> NavigationItems { get; } =
         [
-            new NavigationItem("Recognition", PackIconKind.Image, typeof(RecognitionViewModel)),
-            new NavigationItem("Single Image", PackIconKind.Camera, typeof(SingleImageVm)),
-            new NavigationItem("Settings", PackIconKind.Settings, typeof(SettingsViewModel))
+            new ("Recognition", PackIconKind.Image, typeof(RecognitionViewModel)),
+            new ("Single Image", PackIconKind.Camera, typeof(SingleImageVm)),
+            new ("Settings", PackIconKind.Settings, typeof(SettingsViewModel))
         ];
 
     [ObservableProperty]
@@ -26,13 +26,13 @@ public partial class MainWindowVm : ObservableObject
         SelectedNavigationItem = NavigationItems.First();
     }
 
-    private void OnSelectedNavigationItemChanged(NavigationItem item)
+    partial void OnSelectedNavigationItemChanged(NavigationItem value)
     {
-        if (item is null)
+        if (value is null)
         {
             return;
         }
 
-        NavigationService.NavigateTo<item.ViewType>();
+        NavigationService.NavigateTo(value.ViewType);
     }
 }

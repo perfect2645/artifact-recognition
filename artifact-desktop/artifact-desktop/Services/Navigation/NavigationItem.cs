@@ -2,6 +2,6 @@
 
 namespace artifact.desktop.Services.Navigation
 {
-    public sealed record NavigationItem(string Label, PackIconKind Icon, Type ViewType);
+    public record NavigationItem(string Label, PackIconKind Icon, Type ViewType);
 }
 

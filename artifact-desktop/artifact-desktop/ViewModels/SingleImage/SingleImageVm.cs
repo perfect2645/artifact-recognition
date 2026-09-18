@@ -1,4 +1,5 @@
 using artifact.desktop.Services;
+using artifact.desktop.ViewModels.Base;
 using artifact.shared.data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -11,8 +12,8 @@ using Utils.Tasking;
 
 namespace artifact.desktop.ViewModels;
 
-[Register(ServiceType = typeof(SingleImageVm))]
-public partial class SingleImageVm : ObservableRecipient, IRecipient<ValueChangedMessage<ArtifactMessage>>
+[Register(ServiceType = typeof(ObservableRecipientVm))]
+public partial class SingleImageVm : ObservableRecipientVm, IRecipient<ValueChangedMessage<ArtifactMessage>>
 {
     [ObservableProperty] private string? _selectedImagePath;
     [ObservableProperty] private RecognitionStatus _recognitionStatus;

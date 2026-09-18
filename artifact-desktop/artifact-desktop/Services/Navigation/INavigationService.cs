@@ -11,6 +11,7 @@ public interface INavigationService
 {
     object? CurrentViewModel { get; }
     void NavigateTo<TViewModel>() where TViewModel : class;
+    void NavigateTo<TViewModel>(TViewModel viewModel) where TViewModel : class;
 }
 
 [Register(Lifetime = Lifetime.Singleton)]
@@ -23,5 +24,10 @@ public partial class NavigationService(IServiceProvider serviceProvider) : Obser
     {
         var viewModel = serviceProvider.GetRequiredService<TViewModel>();
         CurrentViewModel = viewModel;
+    }
+
+    public void NavigateTo<TViewModel>(TViewModel viewModel) where TViewModel : class
+    {
+        NavigateTo<TViewModel>();
     }
 }

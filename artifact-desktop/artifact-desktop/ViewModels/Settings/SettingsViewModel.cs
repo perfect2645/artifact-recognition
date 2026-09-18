@@ -2,8 +2,8 @@
 
 namespace artifact.desktop.ViewModels
 {
-    [Register(ServiceType = typeof(SettingsViewModel), Lifetime = Lifetime.Singleton)]
-    public partial class SettingsViewModel
+    [Register(ServiceType = typeof(ObservableViewModel), Lifetime = Lifetime.Singleton)]
+    public partial class SettingsViewModel : ObservableViewModel
     {
     }
 }

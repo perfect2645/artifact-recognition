@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Utils.Ioc;
 
 namespace artifact.desktop.ViewModels
 {
-    public partial class RecognitionViewModel
+    [Register(ServiceType = typeof(ObservableViewModel), Lifetime = Lifetime.Singleton)]
+    public partial class RecognitionViewModel : ObservableViewModel
     {
     }
 }
