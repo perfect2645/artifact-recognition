@@ -1,8 +1,5 @@
-using artifact.desktop.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
-using System.Windows;
-using System.Windows.Controls;
 using Utils.Ioc;
 
 namespace artifact.desktop.Services.Navigation;
@@ -11,7 +8,7 @@ public interface INavigationService
 {
     object? CurrentViewModel { get; }
     void NavigateTo<TViewModel>() where TViewModel : class;
-    void NavigateTo<TViewModel>(TViewModel viewModel) where TViewModel : class;
+    void NavigateTo(Type viewModelType);
 }
 
 [Register(Lifetime = Lifetime.Singleton)]
@@ -22,12 +19,12 @@ public partial class NavigationService(IServiceProvider serviceProvider) : Obser
 
     public void NavigateTo<TViewModel>() where TViewModel : class
     {
-        var viewModel = serviceProvider.GetRequiredService<TViewModel>();
-        CurrentViewModel = viewModel;
+        NavigateTo(typeof(TViewModel));
     }
 
-    public void NavigateTo<TViewModel>(TViewModel viewModel) where TViewModel : class
+    public void NavigateTo(Type viewModelType)
     {
-        NavigateTo<TViewModel>();
+        var viewModel = serviceProvider.GetRequiredService(viewModelType);
+        CurrentViewModel = viewModel;
     }
 }

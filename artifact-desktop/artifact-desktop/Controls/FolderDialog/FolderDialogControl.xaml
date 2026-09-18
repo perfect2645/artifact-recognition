@@ -9,7 +9,7 @@
         <StackPanel>
             <Button Content="Select Folder"
                     Width="150" Height="30" Margin="10"
-                    Command="{Binding OpenFolderDialog}"/>
+                    Command="{Binding OpenFolderDialogCommand}"/>
         </StackPanel>
     </Grid>
 </UserControl>

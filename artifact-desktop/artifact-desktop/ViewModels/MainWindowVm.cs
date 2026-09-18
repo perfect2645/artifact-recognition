@@ -18,7 +18,7 @@ public partial class MainWindowVm : ObservableObject
         ];
 
     [ObservableProperty]
-    public partial NavigationItem SelectedNavigationItem { get; set; }
+    public partial NavigationItem? SelectedNavigationItem { get; set; }
 
     public MainWindowVm(INavigationService navigationService)
     {
@@ -26,13 +26,13 @@ public partial class MainWindowVm : ObservableObject
         SelectedNavigationItem = NavigationItems.First();
     }
 
-    partial void OnSelectedNavigationItemChanged(NavigationItem value)
+    partial void OnSelectedNavigationItemChanged(NavigationItem? value)
     {
         if (value is null)
         {
             return;
         }
 
-        NavigationService.NavigateTo(value.ViewType);
+        NavigationService.NavigateTo(value.ViewModelType);
     }
 }

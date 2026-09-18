@@ -2,7 +2,7 @@
 
 namespace artifact.desktop.ViewModels
 {
-    [Register(ServiceType = typeof(ObservableViewModel), Lifetime = Lifetime.Singleton)]
+    [Register(ServiceType = typeof(RecognitionViewModel), Lifetime = Lifetime.Singleton)]
     public partial class RecognitionViewModel : ObservableViewModel
     {
     }

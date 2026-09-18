@@ -12,7 +12,7 @@ using Utils.Tasking;
 
 namespace artifact.desktop.ViewModels;
 
-[Register(ServiceType = typeof(ObservableRecipientVm))]
+[Register(ServiceType = typeof(SingleImageVm), Lifetime = Lifetime.Singleton)]
 public partial class SingleImageVm : ObservableRecipientVm, IRecipient<ValueChangedMessage<ArtifactMessage>>
 {
     [ObservableProperty] private string? _selectedImagePath;

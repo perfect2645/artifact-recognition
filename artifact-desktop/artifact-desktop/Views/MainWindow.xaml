@@ -116,6 +116,6 @@
         </Border>
 
         <ContentControl Grid.Column="1"
-                        Content="{Binding Navigation.CurrentViewModel}" />
+                        Content="{Binding NavigationService.CurrentViewModel}" />
     </Grid>
 </Window>
