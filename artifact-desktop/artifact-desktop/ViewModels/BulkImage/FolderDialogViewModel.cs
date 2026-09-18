@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Utils.Ioc;
 
-namespace artifact.desktop.Controls
+namespace artifact.desktop.ViewModels.BulkImage
 {
     [Register(ServiceType = typeof(FolderDialogViewModel), Lifetime = Lifetime.Singleton)]
     public partial class FolderDialogViewModel : ObservableObject
@@ -13,15 +13,11 @@ namespace artifact.desktop.Controls
         private string dialogTitle = string.Empty;
 
         [ObservableProperty]
-        private bool enableGatherFiles = false;
-
-        [ObservableProperty]
-        private string filesSearchPattern = "*.*";
-
-        [ObservableProperty]
         private string[]? gatheredFiles = [];
 
         [ObservableProperty]
         private int fileCount;
+
+
     }
 }

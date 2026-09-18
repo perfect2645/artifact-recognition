@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
@@ -20,12 +20,14 @@ namespace artifact.desktop.Controls
         public string SelectedFolderPath
         {
             get { return (string)GetValue(SelectedFolderPathProperty); }
-            set { SetValue(SelectedFolderPathProperty, value); }
         }
 
-        public static readonly DependencyProperty SelectedFolderPathProperty =
-            DependencyProperty.Register(nameof(SelectedFolderPath), typeof(string), ControlType, 
+        private static readonly DependencyPropertyKey SelectedFolderPathPropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(SelectedFolderPath), typeof(string), ControlType,
                 new PropertyMetadata(string.Empty, OnSelectedFolderPathChanged));
+
+        public static readonly DependencyProperty SelectedFolderPathProperty =
+            SelectedFolderPathPropertyKey.DependencyProperty;
 
         private static void OnSelectedFolderPathChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -62,22 +64,25 @@ namespace artifact.desktop.Controls
 
         public string[]? GatheredFiles
         {
-            get { return (string[]?)GetValue(GatheredFilesProperty); }
-            set { SetValue(GatheredFilesProperty, value); }
+            get => (string[]?)GetValue(GatheredFilesProperty);
         }
 
-        public static readonly DependencyProperty GatheredFilesProperty =
-            DependencyProperty.Register(nameof(GatheredFiles), typeof(string[]), ControlType);
+        private static readonly DependencyPropertyKey GatheredFilesPropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(GatheredFiles), typeof(string[]),ControlType, new PropertyMetadata(null));
 
+        public static readonly DependencyProperty GatheredFilesProperty =
+            GatheredFilesPropertyKey.DependencyProperty;
 
         public int FileCount
         {
-            get { return (int)GetValue(FileCountProperty); }
-            set { SetValue(FileCountProperty, value); }
+            get => (int)GetValue(FileCountProperty);
         }
 
+        private static readonly DependencyPropertyKey FileCountPropertyKey =
+            DependencyProperty.RegisterReadOnly(nameof(FileCount), typeof(int), ControlType, new PropertyMetadata(0));
+
         public static readonly DependencyProperty FileCountProperty =
-            DependencyProperty.Register(nameof(FileCount), typeof(int), ControlType, new PropertyMetadata(0));
+            FileCountPropertyKey.DependencyProperty;
 
 
         #endregion Properties
@@ -95,7 +100,7 @@ namespace artifact.desktop.Controls
 
         private void ClearGatheredFiles()
         {
-            GatheredFiles = null;
+            SetValue(GatheredFilesPropertyKey, null);
             FilesSearchPattern = DefaultFilesSearchPattern;
             FileCount = 0;
         }
@@ -113,14 +118,14 @@ namespace artifact.desktop.Controls
                 return;
             }
 
-            SelectedFolderPath = folderDialog.FolderName;
+            SetValue(SelectedFolderPathPropertyKey, folderDialog.FolderName);
 
             ClearGatheredFiles();
 
             if (EnableGatherFiles)
             {
                 var (files, count) = GatherFiles();
-                GatheredFiles = files;
+                SetValue(GatheredFilesPropertyKey, files);
                 FileCount = count;
             }
         }
