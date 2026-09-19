@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace artifact.desktop.Controls
 {
@@ -102,11 +101,11 @@ namespace artifact.desktop.Controls
         {
             SetValue(GatheredFilesPropertyKey, null);
             FilesSearchPattern = DefaultFilesSearchPattern;
-            FileCount = 0;
+            SetValue(FileCountPropertyKey, 0);
         }
 
         [RelayCommand]
-        private void OnOpenFolderDialog()
+        private async Task OnOpenFolderDialog()
         {
             var folderDialog = new OpenFolderDialog
             {
@@ -124,13 +123,13 @@ namespace artifact.desktop.Controls
 
             if (EnableGatherFiles)
             {
-                var (files, count) = GatherFiles();
+                var (files, count) = await GatherFiles();
                 SetValue(GatheredFilesPropertyKey, files);
-                FileCount = count;
+                SetValue(FileCountPropertyKey, count);
             }
         }
 
-        private (string[], int) GatherFiles()
+        private async Task<(string[], int)> GatherFiles()
         {
             try
             {

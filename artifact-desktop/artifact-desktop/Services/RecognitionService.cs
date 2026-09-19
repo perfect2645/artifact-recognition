@@ -10,8 +10,7 @@ namespace artifact.desktop.Services
 {
     [Register(ServiceType = typeof(IRecognitionService), Lifetime = Lifetime.Singleton)]
     public class RecognitionService(
-        [FromKeyedServices(Constants.ArtifactHttpApiKey)]IArtifactHttpClient artifactHttpClient, 
-        ILogger<RecognitionService> logger) : IRecognitionService
+        [FromKeyedServices(Constants.ArtifactHttpApiKey)]IArtifactHttpClient artifactHttpClient) : IRecognitionService
     {
         public async ValueTask<ArtifactHttpResponse> CreateArtifactsAsync(string inputFolderPath, CancellationToken cancellationToken)
         {

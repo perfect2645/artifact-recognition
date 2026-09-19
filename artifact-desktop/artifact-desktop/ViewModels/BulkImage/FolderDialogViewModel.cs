@@ -18,6 +18,8 @@ namespace artifact.desktop.ViewModels.BulkImage
         [ObservableProperty]
         private int fileCount;
 
-
+        partial void OnGatheredFilesChanged(string[]? value)
+        {
+        }
     }
 }
