@@ -2,7 +2,6 @@
 using artifact.desktop.Messaging.Http;
 using artifact.shared.data;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.IO;
 using Utils.Ioc;
 

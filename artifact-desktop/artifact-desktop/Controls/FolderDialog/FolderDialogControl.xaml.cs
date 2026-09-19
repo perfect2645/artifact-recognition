@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
+using System.Windows.Data;
 
 namespace artifact.desktop.Controls
 {
@@ -19,14 +20,12 @@ namespace artifact.desktop.Controls
         public string SelectedFolderPath
         {
             get { return (string)GetValue(SelectedFolderPathProperty); }
+            internal set => throw new InvalidOperationException("SelectedFolderPath is read-only and cannot be set externally.");
         }
 
-        private static readonly DependencyPropertyKey SelectedFolderPathPropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(SelectedFolderPath), typeof(string), ControlType,
-                new PropertyMetadata(string.Empty, OnSelectedFolderPathChanged));
-
         public static readonly DependencyProperty SelectedFolderPathProperty =
-            SelectedFolderPathPropertyKey.DependencyProperty;
+            DependencyProperty.Register(nameof(SelectedFolderPath), typeof(string), ControlType,
+                new PropertyMetadata(string.Empty, OnSelectedFolderPathChanged));
 
         private static void OnSelectedFolderPathChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -64,13 +63,12 @@ namespace artifact.desktop.Controls
         public string[]? GatheredFiles
         {
             get => (string[]?)GetValue(GatheredFilesProperty);
+            internal set => throw new InvalidOperationException("GatheredFiles is read-only and cannot be set externally.");
         }
 
-        private static readonly DependencyPropertyKey GatheredFilesPropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(GatheredFiles), typeof(string[]),ControlType, new PropertyMetadata(null));
-
         public static readonly DependencyProperty GatheredFilesProperty =
-            GatheredFilesPropertyKey.DependencyProperty;
+            DependencyProperty.Register(nameof(GatheredFiles), typeof(string[]),
+                ControlType, new PropertyMetadata(null));
 
         public int FileCount
         {
@@ -91,16 +89,40 @@ namespace artifact.desktop.Controls
         public FolderDialogControl()
         {
             InitializeComponent();
+            Loaded += OnLoaded;
         }
 
         #endregion Constructor
 
         #region Methods
 
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            ValidateOutputBinding(SelectedFolderPathProperty);
+            ValidateOutputBinding(GatheredFilesProperty);
+        }
+
+        private void ValidateOutputBinding(DependencyProperty property)
+        {
+            var binding = BindingOperations.GetBinding(this, property);
+            if (binding is null)
+            {
+                if (ReadLocalValue(property) == DependencyProperty.UnsetValue)
+                {
+                    return;
+                }
+            }
+            else if (binding.Mode == BindingMode.OneWayToSource )
+            {
+                return;
+            }
+
+            throw new InvalidOperationException($"The property '{property.Name}' only supports a OneWayToSource binding.");
+        }
+
         private void ClearGatheredFiles()
         {
-            SetValue(GatheredFilesPropertyKey, null);
-            FilesSearchPattern = DefaultFilesSearchPattern;
+            SetCurrentValue(GatheredFilesProperty, null);
             SetValue(FileCountPropertyKey, 0);
         }
 
@@ -117,15 +139,19 @@ namespace artifact.desktop.Controls
                 return;
             }
 
-            SetValue(SelectedFolderPathPropertyKey, folderDialog.FolderName);
-
             ClearGatheredFiles();
+
+            SetCurrentValue(SelectedFolderPathProperty, folderDialog.FolderName);
 
             if (EnableGatherFiles)
             {
                 var (files, count) = await GatherFiles();
-                SetValue(GatheredFilesPropertyKey, files);
+                SetCurrentValue(GatheredFilesProperty, files);
                 SetValue(FileCountPropertyKey, count);
+
+                // Ensure the UI has time to update before the next operation, if needed.
+                // Adjust the delay as necessary based on your application's needs.
+                await Task.Delay(1000); 
             }
         }
 

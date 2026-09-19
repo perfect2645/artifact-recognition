@@ -12,8 +12,8 @@
             <controls:FolderDialogControl
                 EnableGatherFiles="True"
                 FilesSearchPattern="*.dcm"
-                SelectedFolderPath="{Binding InputFolderPath, Mode=OneWayToSource}"
-                GatheredFiles="{Binding DicomFiles, Mode=OneWayToSource}" />
+                SelectedFolderPath="{Binding FolderDialogViewModel.InputFolderPath, Mode=OneWayToSource}"
+                GatheredFiles="{Binding FolderDialogViewModel.GatheredFiles, Mode=OneWayToSource}" />
         </Grid>
     </Grid>
 </UserControl>
