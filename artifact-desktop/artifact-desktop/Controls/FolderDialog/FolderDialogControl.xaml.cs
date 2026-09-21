@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace artifact.desktop.Controls
@@ -9,22 +10,22 @@ namespace artifact.desktop.Controls
     /// <summary>
     /// FolderDialog.xaml 的交互逻辑
     /// </summary>
-    public partial class FolderDialogControl
+    public partial class FolderDialogControl : UserControl
     {
 
         #region Properties
 
-        private static readonly Type ControlType = typeof(FolderDialogControl);
+        private static readonly Type controlType = typeof(FolderDialogControl);
         private const string DefaultFilesSearchPattern = "*.*";
 
         public string SelectedFolderPath
         {
-            get { return (string)GetValue(SelectedFolderPathProperty); }
+            get => (string)GetValue(SelectedFolderPathProperty);
             internal set => throw new InvalidOperationException("SelectedFolderPath is read-only and cannot be set externally.");
         }
 
         public static readonly DependencyProperty SelectedFolderPathProperty =
-            DependencyProperty.Register(nameof(SelectedFolderPath), typeof(string), ControlType,
+            DependencyProperty.Register(nameof(SelectedFolderPath), typeof(string), controlType,
                 new PropertyMetadata(string.Empty, OnSelectedFolderPathChanged));
 
         private static void OnSelectedFolderPathChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -35,30 +36,30 @@ namespace artifact.desktop.Controls
 
         public string DialogTitle
         {
-            get { return (string)GetValue(DialogTitleProperty); }
-            set { SetValue(DialogTitleProperty, value); }
+            get => (string)GetValue(DialogTitleProperty);
+            set => SetValue(DialogTitleProperty, value);
         }
 
         public static readonly DependencyProperty DialogTitleProperty =
-            DependencyProperty.Register(nameof(DialogTitle), typeof(string), ControlType, new PropertyMetadata(string.Empty));
+            DependencyProperty.Register(nameof(DialogTitle), typeof(string), controlType, new PropertyMetadata(string.Empty));
 
         public bool EnableGatherFiles
         {
-            get { return (bool)GetValue(EnableGatherFilesProperty); }
-            set { SetValue(EnableGatherFilesProperty, value); }
+            get => (bool)GetValue(EnableGatherFilesProperty);
+            set => SetValue(EnableGatherFilesProperty, value);
         }
 
         public static readonly DependencyProperty EnableGatherFilesProperty =
-            DependencyProperty.Register(nameof(EnableGatherFiles), typeof(bool), ControlType);
+            DependencyProperty.Register(nameof(EnableGatherFiles), typeof(bool), controlType);
 
         public string FilesSearchPattern
         {
-            get { return (string)GetValue(FilesSearchPatternProperty); }
-            set { SetValue(FilesSearchPatternProperty, value); }
+            get => (string)GetValue(FilesSearchPatternProperty); 
+            set => SetValue(FilesSearchPatternProperty, value);
         }
 
         public static readonly DependencyProperty FilesSearchPatternProperty =
-            DependencyProperty.Register(nameof(FilesSearchPattern), typeof(string), ControlType, new PropertyMetadata(DefaultFilesSearchPattern));
+            DependencyProperty.Register(nameof(FilesSearchPattern), typeof(string), controlType, new PropertyMetadata(DefaultFilesSearchPattern));
 
         public string[]? GatheredFiles
         {
@@ -68,19 +69,16 @@ namespace artifact.desktop.Controls
 
         public static readonly DependencyProperty GatheredFilesProperty =
             DependencyProperty.Register(nameof(GatheredFiles), typeof(string[]),
-                ControlType, new PropertyMetadata(null));
+                controlType, new PropertyMetadata(null));
 
         public int FileCount
         {
             get => (int)GetValue(FileCountProperty);
+            internal set => throw new InvalidOperationException("FileCount is read-only and cannot be set externally.");
         }
 
-        private static readonly DependencyPropertyKey FileCountPropertyKey =
-            DependencyProperty.RegisterReadOnly(nameof(FileCount), typeof(int), ControlType, new PropertyMetadata(0));
-
         public static readonly DependencyProperty FileCountProperty =
-            FileCountPropertyKey.DependencyProperty;
-
+            DependencyProperty.Register(nameof(FileCount), typeof(int), controlType, new PropertyMetadata(0));
 
         #endregion Properties
 
@@ -123,7 +121,7 @@ namespace artifact.desktop.Controls
         private void ClearGatheredFiles()
         {
             SetCurrentValue(GatheredFilesProperty, null);
-            SetValue(FileCountPropertyKey, 0);
+            SetValue(FileCountProperty, 0);
         }
 
         [RelayCommand]
@@ -147,7 +145,7 @@ namespace artifact.desktop.Controls
             {
                 var (files, count) = await GatherFiles();
                 SetCurrentValue(GatheredFilesProperty, files);
-                SetValue(FileCountPropertyKey, count);
+                SetValue(FileCountProperty, count);
 
                 // Ensure the UI has time to update before the next operation, if needed.
                 // Adjust the delay as necessary based on your application's needs.
@@ -157,28 +155,31 @@ namespace artifact.desktop.Controls
 
         private async Task<(string[], int)> GatherFiles()
         {
-            try
+            return await Task.Run(() =>
             {
-                var files = Directory.EnumerateFiles(
-                    path: SelectedFolderPath,
-                    searchPattern: FilesSearchPattern,
-                    searchOption: SearchOption.AllDirectories
-                ).ToArray();
+                try
+                {
+                    var files = Directory.EnumerateFiles(
+                        path: SelectedFolderPath,
+                        searchPattern: FilesSearchPattern,
+                        searchOption: SearchOption.AllDirectories
+                    ).ToArray();
 
-                return (files, files.Length);
-            }
-            catch (DirectoryNotFoundException)
-            {
-                return (Array.Empty<string>(), 0);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                return (Array.Empty<string>(), 0);
-            }
-            catch (IOException)
-            {
-                return (Array.Empty<string>(), 0);
-            }
+                    return (files, files.Length);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return ([], 0);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return ([], 0);
+                }
+                catch (IOException)
+                {
+                    return ([], 0);
+                }
+            });
         }
 
         #endregion Methods
