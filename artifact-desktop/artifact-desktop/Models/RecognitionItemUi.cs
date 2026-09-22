@@ -5,7 +5,7 @@ namespace artifact.desktop.Models
 {
     public partial class RecognitionItemUi : ObservableObject
     {
-        public string? Id { get; set; }
+        public Guid? Id { get; set; }
 
         [ObservableProperty]
         public required partial string Name { get; set; }
