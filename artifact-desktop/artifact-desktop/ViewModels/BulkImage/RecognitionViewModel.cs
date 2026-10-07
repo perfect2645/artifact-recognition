@@ -2,8 +2,11 @@ using artifact.desktop.Messaging.Local;
 using artifact.desktop.Models;
 using artifact.desktop.ViewModels.Base;
 using artifact.desktop.ViewModels.BulkImage;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using System.Collections.ObjectModel;
 using System.IO;
 using Utils.Ioc;
 
@@ -17,6 +20,10 @@ namespace artifact.desktop.ViewModels
     {
         public FolderDialogViewModel FolderDialogViewModel { get; } = folderDialogViewModel;
 
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(StartRecognitionCommand))]
+        public partial ObservableCollection<RecognitionItemUi> RecognitionItems { get; set; } = new();
+
         public void Receive(ValueChangedMessage<SelectedFiles>? message)
         {
             if (message?.Value.GatheredFiles is null)
@@ -25,21 +32,42 @@ namespace artifact.desktop.ViewModels
                 return;
             }
 
-            _ = BuildRecognitions(message.Value.GatheredFiles);
+            RecognitionItems = BuildRecognitions(message.Value.GatheredFiles);
         }
 
-        private IEnumerable<RecognitionItemUi> BuildRecognitions(string[] selectedFiles)
+        private ObservableCollection<RecognitionItemUi> BuildRecognitions(string[] selectedFiles)
         {
             var recognitions = selectedFiles.Select(filePath => new RecognitionItemUi{
                 InputPath = filePath,
                 Name = Path.GetFileName(filePath),
                 Id = Guid.NewGuid(),
             });
-            return recognitions;
+            return new ObservableCollection<RecognitionItemUi>(recognitions);
         }
+
+        #region Recognition actions
+
+        [RelayCommand(CanExecute = nameof(CanStartRecognition))]
+        private async Task StartRecognitionAsync(CancellationToken cancellationToken)
+        {
+            await Task.Delay(3000, cancellationToken);
+        }
+
+        private bool CanStartRecognition()
+        {
+            if (RecognitionItems.Any())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        #endregion Recognition actions
 
         private void Clear()
         {
+            RecognitionItems = new();
         }
     }
 }

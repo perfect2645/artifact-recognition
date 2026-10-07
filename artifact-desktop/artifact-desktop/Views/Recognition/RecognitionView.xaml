@@ -8,12 +8,20 @@
             <RowDefinition Height="60" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
+        <DockPanel Grid.Row="0">
             <controls:FolderDialogControl
+                DockPanel.Dock="Left"
                 EnableGatherFiles="True"
                 FilesSearchPattern="*.dcm"
                 SelectedFolderPath="{Binding FolderDialogViewModel.InputFolderPath, Mode=OneWayToSource}"
                 GatheredFiles="{Binding FolderDialogViewModel.GatheredFiles, Mode=OneWayToSource}" />
-        </Grid>
+            
+            <Button Content="Start Recognition"
+                    Command="{Binding StartRecognitionCommand}"
+                    DockPanel.Dock="Right"
+                    HorizontalAlignment="Right"
+                    Width="150"
+                    Margin="10,0" />
+        </DockPanel>
     </Grid>
 </UserControl>

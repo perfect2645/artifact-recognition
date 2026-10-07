@@ -143,7 +143,7 @@ namespace artifact.desktop.Controls
 
             if (EnableGatherFiles)
             {
-                var (files, count) = await GatherFiles();
+                var (files, count) = await GatherFiles(folderDialog.FolderName, FilesSearchPattern);
                 SetCurrentValue(GatheredFilesProperty, files);
                 SetValue(FileCountProperty, count);
 
@@ -153,15 +153,15 @@ namespace artifact.desktop.Controls
             }
         }
 
-        private async Task<(string[], int)> GatherFiles()
+        private async Task<(string[], int)> GatherFiles(string inputFolderPath, string filesSearchPattern)
         {
             return await Task.Run(() =>
             {
                 try
                 {
                     var files = Directory.EnumerateFiles(
-                        path: SelectedFolderPath,
-                        searchPattern: FilesSearchPattern,
+                        path: inputFolderPath,
+                        searchPattern: filesSearchPattern,
                         searchOption: SearchOption.AllDirectories
                     ).ToArray();
 

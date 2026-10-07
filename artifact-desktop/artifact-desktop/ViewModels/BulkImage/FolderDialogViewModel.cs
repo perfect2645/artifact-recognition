@@ -23,6 +23,10 @@ namespace artifact.desktop.ViewModels.BulkImage
 
         partial void OnGatheredFilesChanged(string[]? value)
         {
+            if (value is null)
+            {
+                return;
+            }
             messenger.Send(new ValueChangedMessage<SelectedFiles>(new (value)));
         }
     }
