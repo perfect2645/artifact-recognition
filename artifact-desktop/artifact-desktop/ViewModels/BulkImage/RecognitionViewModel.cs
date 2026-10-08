@@ -22,7 +22,7 @@ namespace artifact.desktop.ViewModels
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(StartRecognitionCommand))]
-        public partial ObservableCollection<RecognitionItemUi> RecognitionItems { get; set; } = new();
+        public partial ObservableCollection<RecognitionItemUi> RecognitionItems { get; set; } = [];
 
         public void Receive(ValueChangedMessage<SelectedFiles>? message)
         {
@@ -55,19 +55,14 @@ namespace artifact.desktop.ViewModels
 
         private bool CanStartRecognition()
         {
-            if (RecognitionItems.Any())
-            {
-                return true;
-            }
-
-            return false;
+            return RecognitionItems.Any();
         }
 
         #endregion Recognition actions
 
         private void Clear()
         {
-            RecognitionItems = new();
+            RecognitionItems = [];
         }
     }
 }
