@@ -10,7 +10,7 @@ namespace artifact.desktop.Messaging.Http
         HttpClient httpClient,
         ILogger<ArtifactHttpClient> logger) : HttpApiClient(httpClient), IArtifactHttpClient
     {
-        public async Task<Artifact?> CreateArtifactAsync(ArtifactHttpContent content, CancellationToken cancellationToken = default)
+        public async Task<Artifact?> SubmitRecognitionAsync(ArtifactHttpContent content, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -19,12 +19,13 @@ namespace artifact.desktop.Messaging.Http
             catch (HttpException ex)
             {
                 logger.LogError(ex, "HttpException occurred while creating artifact.");
-                return null;
+                throw;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Unexpected error occurred while creating artifact.");
-                return null;
+                var errMsg = "Unexpected error occurred while creating artifact.";
+                logger.LogError(ex, errMsg);
+                throw new HttpException(errMsg, HttpStatus.Exception);
             }
         }
     }

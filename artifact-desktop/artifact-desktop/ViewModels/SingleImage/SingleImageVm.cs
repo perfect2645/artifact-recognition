@@ -67,7 +67,7 @@ public partial class SingleImageVm : ObservableRecipientVm, IRecipient<ValueChan
         }
 
         RecognitionStatus = RecognitionStatus.Creating;
-        var result = await _recognitionService.CreateArtifactsAsync(folderPath, cancellationToken);
+        //var result = await _recognitionService.SubmitRecognitionAsync(folderPath, cancellationToken);
     }
 
     #endregion Recognition process

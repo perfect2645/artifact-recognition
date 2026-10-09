@@ -19,14 +19,15 @@
     }
 
 
-    public record Artifact(
-        string ArtifactId,
-        string Name,
-        string InputPath,
-        string OutputPath,
-        DateTime? UpdateTime,
-        ArtifactStatus ArtifactStatus,
-        RecognitionStatus RecognitionStatus,
-        string? Comments
-    );
+    public record Artifact
+    {
+        public required Guid ArtifactId { get; init; }
+        public required string Name { get; init; }
+        public required string InputPath { get; init; }
+        public string OutputPath { get; init; } = string.Empty;
+        public DateTime? UpdateTime { get; init; }
+        public ArtifactStatus ArtifactStatus { get; init; }
+        public RecognitionStatus RecognitionStatus { get; init; }
+        public string? Comments { get; init; }
+    }
 }

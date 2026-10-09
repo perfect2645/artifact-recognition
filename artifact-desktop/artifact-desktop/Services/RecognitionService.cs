@@ -11,20 +11,12 @@ namespace artifact.desktop.Services
     public class RecognitionService(
         [FromKeyedServices(Constants.ArtifactHttpApiKey)]IArtifactHttpClient artifactHttpClient) : IRecognitionService
     {
-        public async ValueTask<ArtifactHttpResponse> CreateArtifactsAsync(string inputFolderPath, CancellationToken cancellationToken)
+        public async ValueTask<RecognitionHttpResponse> SubmitRecognitionAsync(RecognitionHttpRequest request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(inputFolderPath))
-            {
-                throw new ArgumentException("Input Folder Path is empty.");
-            }
+            var content = new ArtifactHttpContent(request);
 
-            if (Directory.Exists(inputFolderPath))
-            {
-                throw new ArgumentException($"Invalid input folder path {inputFolderPath}.");
-            }
-
-            await artifactHttpClient.CreateArtifactAsync(new ArtifactHttpContent(), cancellationToken);
-            return new ArtifactHttpResponse();
+            await artifactHttpClient.SubmitRecognitionAsync(content, cancellationToken);
+            return new RecognitionHttpResponse();
         }
     }
 }

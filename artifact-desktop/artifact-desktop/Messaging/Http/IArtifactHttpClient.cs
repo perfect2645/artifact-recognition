@@ -4,6 +4,6 @@ namespace artifact.desktop.Messaging.Http
 {
     public interface IArtifactHttpClient
     {
-        Task<Artifact?> CreateArtifactAsync(ArtifactHttpContent content, CancellationToken cancellationToken = default);
+        Task<Artifact?> SubmitRecognitionAsync(ArtifactHttpContent content, CancellationToken cancellationToken = default);
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace artifact.shared.data
 {
-    public record ArtifactHttpRequest
+    public record RecognitionHttpRequest
     {
         public required Guid TaskId { get; init; }
         public required string FolderPath { get; init; }
