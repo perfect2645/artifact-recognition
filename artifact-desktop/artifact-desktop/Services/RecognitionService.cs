@@ -1,6 +1,7 @@
 ﻿using artifact.desktop.Generic;
 using artifact.desktop.Messaging.Http;
 using artifact.shared.data;
+using Messaging.Http.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using Utils.Ioc;
@@ -15,8 +16,14 @@ namespace artifact.desktop.Services
         {
             var content = new ArtifactHttpContent(request);
 
-            await artifactHttpClient.SubmitRecognitionAsync(content, cancellationToken);
-            return new RecognitionHttpResponse();
+            try
+            {
+                var result = await artifactHttpClient.SubmitRecognitionAsync(content, cancellationToken);
+            }
+            catch (HttpException ex)
+            {
+                return new RecognitionHttpResponse();
+            }
         }
     }
 }
