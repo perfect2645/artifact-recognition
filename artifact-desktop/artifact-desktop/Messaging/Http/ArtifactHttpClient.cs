@@ -10,11 +10,11 @@ namespace artifact.desktop.Messaging.Http
         HttpClient httpClient,
         ILogger<ArtifactHttpClient> logger) : HttpApiClient(httpClient), IArtifactHttpClient
     {
-        public async Task<Artifact?> SubmitRecognitionAsync(ArtifactHttpContent content, CancellationToken cancellationToken = default)
+        public async Task<RecognitionHttpResponse?> SubmitRecognitionAsync(ArtifactHttpContent content, CancellationToken cancellationToken = default)
         {
             try
             {
-                return await PostAsync<Artifact>(content, cancellationToken);
+                return await PostAsync<RecognitionHttpResponse>(content, cancellationToken);
             }
             catch (HttpException ex)
             {

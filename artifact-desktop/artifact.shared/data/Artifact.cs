@@ -27,7 +27,7 @@
         public string OutputPath { get; init; } = string.Empty;
         public DateTime? UpdateTime { get; init; }
         public ArtifactStatus ArtifactStatus { get; init; }
-        public RecognitionStatus RecognitionStatus { get; init; }
+        public RecognitionStatus RecognitionStatus { get; set; }
         public string? Comments { get; init; }
     }
 }

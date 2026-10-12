@@ -15,5 +15,10 @@ namespace artifact.shared.logging
             Level = LogLevel.Information,
             Message = "Recognition task Creating [{inputFolderPath}] started.")]
         public static partial void LogRecognitionCreating(this ILogger logger, string inputFolderPath);
+
+        [LoggerMessage(EventId = 0,
+            Level = LogLevel.Debug,
+            Message = "Recognition task [{taskId}] - [{whereCode}], artifactMessage=[{artifactMessage}]")]
+        public static partial void LogArtifactStatus(this ILogger logger, string taskId, string whereCode, ArtifactMessage artifactMessage);
     }
 }

@@ -19,6 +19,7 @@ namespace artifact.desktop.Services
             try
             {
                 var result = await artifactHttpClient.SubmitRecognitionAsync(content, cancellationToken);
+                return result ?? new RecognitionHttpResponse();
             }
             catch (HttpException ex)
             {
