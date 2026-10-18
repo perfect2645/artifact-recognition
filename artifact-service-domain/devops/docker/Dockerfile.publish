@@ -1,0 +1,18 @@
+﻿# Use official ASP.NET Core 10 runtime image for framework-dependent deployment
+# runtime image must include Microsoft.AspNetCore.App
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+WORKDIR /app
+
+# Copy published output from host ./publish folder into container /app
+COPY ../../publish .
+
+# Default environment (will be overridden by docker run env)
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+# Ensure a writable logs folder exists and has permissive permissions so
+# both the container process and any host bind-mount can write to it.
+RUN mkdir -p /app/logs \
+    && chmod 0777 /app/logs
+
+# Entry point
+ENTRYPOINT ["dotnet", "artifact.service.domain.dll"]
