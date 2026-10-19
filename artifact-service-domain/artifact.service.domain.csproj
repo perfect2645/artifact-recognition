@@ -13,10 +13,15 @@
 
   <ItemGroup>
     <Compile Remove="logs\**" />
+    <Compile Remove="publish\**" />
     <Content Remove="logs\**" />
+    <Content Remove="publish\**" />
     <EmbeddedResource Remove="logs\**" />
+    <EmbeddedResource Remove="publish\**" />
     <None Remove="logs\**" />
+    <None Remove="publish\**" />
   </ItemGroup>
+
 
   <ItemGroup>
     <Compile Include="devops\docker\Dockerfile.publish.dockerignore" />
