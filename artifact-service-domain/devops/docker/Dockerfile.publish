@@ -3,7 +3,7 @@
 WORKDIR /app
 
 # Copy published output from host ./publish folder into container /app
-COPY ../../publish .
+COPY --chown=app:app publish/ ./
 
 # Default environment (will be overridden by docker run env)
 ENV ASPNETCORE_HTTP_PORTS=7092
@@ -13,7 +13,7 @@ EXPOSE 7092
 
 # Ensure a writable logs folder exists and has permissive permissions so
 # both the container process and any host bind-mount can write to it.
-RUN mkdir -p /app/logs && CHOWN app:app /app/logs
+RUN mkdir -p /app/logs && chown app:app /app/logs
 
 USER app
 

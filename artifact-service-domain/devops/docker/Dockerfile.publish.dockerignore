@@ -2,3 +2,5 @@
 !publish/
 !publish/**
 **/*.pfx
+**/*.p12
+publish/appsettings.Development.json
