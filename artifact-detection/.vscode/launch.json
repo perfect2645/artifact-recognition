@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug artifact worker",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}\\src\\controller\\artifact_worker.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": [
+        "--hub-url",
+        "https://localhost:7092/hubs/signalr",
+        "--result-url",
+        "https://localhost:7092/api/artifact"
+      ]
+    }
+  ]
+}

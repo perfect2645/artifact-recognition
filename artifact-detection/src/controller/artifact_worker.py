@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import argparse
 import logging
+from multiprocessing import Event
 import signal
 import sys
-import time
 from dataclasses import replace
 from datetime import datetime
 from enum import Enum
@@ -17,6 +17,8 @@ CURRENT_DIR = Path(__file__).resolve().parent
 SRC_DIR = CURRENT_DIR.parent
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
+
+from messaging.connection_retry import start_with_retry
 
 from controller.artifact_inference import ArtifactClassifier
 from controller.artifact_models import ArtifactMessage, RecognitionStatus
@@ -74,7 +76,12 @@ class ArtifactWorker:
 
         except Exception as exc:
             self._handle_failure(artifact_message, exc)
-            return
+            if artifact_message is None:
+                return
+            artifact_message = self._build_failed_message(
+                artifact_message,
+                f"Artifact recognition failed: {exc}"
+            )
 
         self._post_result(artifact_message)       
 
@@ -104,7 +111,7 @@ class ArtifactWorker:
             comments=error_text,
             update_time=datetime.now().astimezone()
         )
-        return replace(artifact_message, message=failed_artifact)
+        return replace(artifact_message, sender="model", message=failed_artifact)
 
     @staticmethod
     def _log_artifact_message(
@@ -183,24 +190,21 @@ def main() -> int:
         join_group_method=args.join_group_method,
     )
 
+    shutdown_requested = Event()
+
     def _shutdown(_signum: int, _frame: Any) -> None:
-        worker.stop()
+        shutdown_requested.set()
 
     signal.signal(signal.SIGINT, _shutdown)
     if hasattr(signal, "SIGTERM"):
         signal.signal(signal.SIGTERM, _shutdown)
 
-    worker.start()
     try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        pass
+        if start_with_retry(worker.start, shutdown_requested):
+            while not shutdown_requested.wait(1):
+                pass
     finally:
         worker.stop()
-
-    return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())
