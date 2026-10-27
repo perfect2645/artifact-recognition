@@ -4,7 +4,7 @@
     container_name: artifact-api
 
     ports:
-      - "127.0.0.1:5001:8081"
+      - "127.0.0.1:7092:8081"
 
     environment:
       ASPNETCORE_ENVIRONMENT: Development

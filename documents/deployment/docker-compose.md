@@ -76,7 +76,7 @@ Expected: Up, HTTPS listening on 8081, environment Development.
 预期：状态为 Up，HTTPS 监听 8081，环境为 Development。6. Verify HTTPS and persistent logs / 验证 HTTPS 和持久化日志
 
 ```powershell
-curl.exe -i https://localhost:5001/api/recognition
+curl.exe -i --ssl-revoke-best-effort https://localhost:7092/api/recognition
 
 Get-ChildItem -LiteralPath .\container-logs -Filter "app-*.log" -File |
     Sort-Object Name -Descending |
@@ -85,8 +85,8 @@ Get-ChildItem -LiteralPath .\container-logs -Filter "app-*.log" -File |
 
 ```
 
-Expected: HTTP 405 with Allow: POST because this request uses GET. Open Swagger at https://localhost:5001/swagger to test POST; an empty artifacts list avoids sending recognition messages.
-预期：HTTP 405 且包含 Allow: POST，因为这里发送的是 GET。打开 https://localhost:5001/swagger 测试 POST；使用空 artifacts 列表可避免发送识别消息。
+Expected: HTTP 405 with Allow: POST because this request uses GET. Open Swagger at https://localhost:7092/swagger to test POST; an empty artifacts list avoids sending recognition messages.
+预期：HTTP 405 且包含 Allow: POST，因为这里发送的是 GET。打开 https://localhost:7092/swagger 测试 POST；使用空 artifacts 列表可避免发送识别消息。
 Common commands / 常用命令
 
 ```powershell
@@ -106,3 +106,14 @@ docker compose -f .\devops\docker\docker-compose.yaml down
 
 After code changes: repeat publish → build → up -d. This Compose file does not build the image automatically. In a new terminal, set the project directory and certificate environment variable again.
 修改代码后重复 发布 → 构建 → up -d。此 Compose 文件不会自动构建镜像。打开新终端后，需要重新设置项目目录和证书环境变量。
+
+## Certificate chain and revocation / 证书链与吊销
+
+The server (container) must serve the leaf certificate with its private key (`localhost-artifact.pfx`); the root CA public certificate (`Fawei Local Dev Root CA`) belongs in the client's trusted root store, not in the container. The client's chain validates against the trusted root CA.
+服务器（container）必须使用叶子证书 + 私钥（`localhost-artifact.pfx`）；根 CA 公钥证书（`Fawei Local Dev Root CA`）属于客户端受信任根存储，不放进容器。客户端链校验到已信任的根 CA 即通过。
+
+The leaf has no CRL or OCSP revocation info, so Schannel's strict revocation check fails with `CRYPT_E_NO_REVOCATION_CHECK`. `--ssl-revoke-best-effort` tolerates the missing revocation info while still validating the chain against the trusted root CA; this is the usual practice for private / internal CAs.
+当前叶子证书无 CRL/OCSP 吊销信息，严格吊销检查会报 `CRYPT_E_NO_REVOCATION_CHECK`。`--ssl-revoke-best-effort` 在保留根 CA 链校验的同时容忍缺失吊销信息，这也是私有/内部 CA 客户端的常见做法。
+
+To make plain `curl` (strict revocation) succeed, the leaf must carry CRL/OCSP revocation info: provision an OCSP responder or CRL distribution point for the root CA, then re-issue the leaf with revocation extensions.
+若要让普通 `curl`（严格吊销）也通过，叶子证书必须携带 CRL/OCSP 吊销信息：为根 CA 提供 OCSP responder 或 CRL 分发点，并重新签发带吊销扩展的叶子证书。
