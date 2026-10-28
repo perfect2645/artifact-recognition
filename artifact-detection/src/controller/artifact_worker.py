@@ -75,7 +75,7 @@ class ArtifactWorker:
             )
 
         except Exception as exc:
-            self._handle_failure(artifact_message, exc)
+            self._handle_failure("Artifact recognition failed", artifact_message, exc)
             if artifact_message is None:
                 return
             artifact_message = self._build_failed_message(
@@ -87,12 +87,14 @@ class ArtifactWorker:
 
     def _handle_failure(
         self,
+        error_summary: str,
         artifact_message: ArtifactMessage | None,
         exc: Exception
     ) -> None:
-        error_text = f"Artifact recognition failed: {exc}"
+        error_text = f"{error_summary}: {exc}"
         LOGGER.exception(
-            "Artifact recognition failed: artifactId=%s; inputPath=%s",
+            "%s: artifactId=%s; inputPath=%s",
+            error_summary,
             artifact_message.message.artifact_id if artifact_message else "N/A",
             artifact_message.message.input_path if artifact_message else "N/A"
         )
@@ -136,7 +138,8 @@ class ArtifactWorker:
         try:
             self.webapi_client.post_result(artifact_message.to_dict())
         except Exception as exc:
-            self._handle_failure(artifact_message, exc)
+            error_summary = f"Post recognition result failed, url={self.webapi_client.result_url}"
+            self._handle_failure(error_summary, artifact_message, exc)
             return
         self._log_artifact_message(
             "result posted", artifact_message, "event", "post_result"
