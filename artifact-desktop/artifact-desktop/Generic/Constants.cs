@@ -4,5 +4,6 @@
     {
         public const string ArtifactRealtimeService = "ArtifactRealtimeService";
         public const string ArtifactHttpApiKey = "artifact";
+        public const string RecognitionRequestPath = "recognition";
     }
 }

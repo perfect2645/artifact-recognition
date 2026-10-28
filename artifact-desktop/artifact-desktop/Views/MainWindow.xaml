@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="Artifact Automation" 
-        Height="680" Width="1100"
-        MinHeight="560" MinWidth="900"
+        Height="850" Width="1280"
+        MinHeight="720" MinWidth="1100"
         Background="#F7F8FA"
         Style="{StaticResource MaterialDesignWindow}"
         WindowStartupLocation="CenterScreen">
@@ -64,7 +64,7 @@
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="224" />
+            <ColumnDefinition Width="200" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 

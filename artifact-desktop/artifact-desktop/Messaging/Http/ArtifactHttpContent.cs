@@ -19,6 +19,7 @@ namespace artifact.desktop.Messaging.Http
                 throw new HttpException("ArtifactHttpRequest cannot be null", HttpStatus.BuildRequestContent);
             }
             _artifactHttpRequest = artifactHttpRequest;
+            RelativeUri = artifactHttpRequest.RelativePath.NotNullString();
 
             AddContentHeader(SharedConstants.HttpTaskIdHeader, artifactHttpRequest.TaskId.NotNullString());
         }

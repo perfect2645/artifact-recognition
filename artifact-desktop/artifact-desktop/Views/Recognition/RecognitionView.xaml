@@ -1,27 +1,782 @@
 <UserControl x:Class="artifact.desktop.Views.RecognitionView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:artifact.desktop.Views"
-             xmlns:controls="clr-namespace:artifact.desktop.Controls">
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Padding="28,24"
+             Background="#F7F8FA"
+             Foreground="#202333"
+             FontFamily="Segoe UI"
+             FontSize="13">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVisibility" />
+
+        <Style x:Key="MutedText"
+               TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#707586" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style x:Key="ResultBadge"
+               TargetType="Border">
+            <Setter Property="Background" Value="#F3F4F8" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="7,4" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding HasArtifact}" Value="True">
+                    <Setter Property="Background" Value="#FFF3E0" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding HasNoArtifact}" Value="True">
+                    <Setter Property="Background" Value="#EAF6EF" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ResultText"
+               TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#707586" />
+            <Setter Property="FontSize" Value="11" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding HasArtifact}" Value="True">
+                    <Setter Property="Foreground" Value="#946014" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding HasNoArtifact}" Value="True">
+                    <Setter Property="Foreground" Value="#23745E" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="StatusIcon"
+               TargetType="materialDesign:PackIcon">
+            <Setter Property="Kind" Value="ClockOutline" />
+            <Setter Property="Foreground" Value="#85899A" />
+            <Setter Property="Width" Value="14" />
+            <Setter Property="Height" Value="14" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                    <Setter Property="Kind" Value="CheckCircleOutline" />
+                    <Setter Property="Foreground" Value="#23745E" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsFailed}" Value="True">
+                    <Setter Property="Kind" Value="AlertCircleOutline" />
+                    <Setter Property="Foreground" Value="#BA4A55" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsProcessing}" Value="True">
+                    <Setter Property="Kind" Value="ImageSearchOutline" />
+                    <Setter Property="Foreground" Value="#6B42CE" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="FilterItem"
+               TargetType="ListBoxItem">
+            <Setter Property="Margin" Value="0,0,4,0" />
+            <Setter Property="Padding" Value="9,6" />
+            <Setter Property="Foreground" Value="#707586" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="5">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#F4F1FC" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#EEE8FA" />
+                                <Setter Property="Foreground" Value="#6B42CE" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="QueueCell"
+               TargetType="DataGridCell">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#202333" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}"
+                             Value="True">
+                    <Setter Property="Background" Value="#EEE8FA" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="60" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <DockPanel Grid.Row="0">
-            <controls:FolderDialogControl
-                DockPanel.Dock="Left"
-                EnableGatherFiles="True"
-                FilesSearchPattern="*.dcm"
-                SelectedFolderPath="{Binding FolderDialogViewModel.InputFolderPath, Mode=OneWayToSource}"
-                GatheredFiles="{Binding FolderDialogViewModel.GatheredFiles, Mode=OneWayToSource}" />
-            
-            <Button Content="Start Recognition"
-                    Command="{Binding StartRecognitionCommand}"
-                    DockPanel.Dock="Right"
-                    HorizontalAlignment="Right"
-                    Width="150"
-                    Margin="10,0" />
+
+        <StackPanel Margin="0,0,0,20">
+            <TextBlock Text="WORKSPACE / RECOGNITION"
+                       Foreground="#85899A"
+                       FontSize="10" />
+            <TextBlock Text="Batch recognition"
+                       FontSize="25"
+                       FontWeight="SemiBold"
+                       Margin="0,6,0,3" />
+            <TextBlock Text="From source files to recognition results, in one workspace."
+                       Style="{StaticResource MutedText}" />
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Background="White"
+                BorderBrush="#E5E7EF"
+                BorderThickness="1"
+                CornerRadius="9"
+                Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="44" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Border Width="34"
+                        Height="36"
+                        Background="#F0EBFC"
+                        CornerRadius="7"
+                        HorizontalAlignment="Left">
+                    <materialDesign:PackIcon Kind="FolderOpenOutline"
+                                             Foreground="#6B42CE"
+                                             Width="21"
+                                             Height="21"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center" />
+                </Border>
+
+                <StackPanel Grid.Column="1"
+                            VerticalAlignment="Center"
+                            Margin="0,0,12,0">
+                    <TextBlock Text="{Binding FolderName}"
+                               FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding FolderDescription}"
+                               Style="{StaticResource MutedText}"
+                               FontSize="11"
+                               TextTrimming="CharacterEllipsis"
+                               ToolTip="{Binding FolderDescription}"
+                               Margin="0,3,0,0" />
+                </StackPanel>
+
+                <Button Grid.Column="2"
+                        Command="{Binding SelectFolderCommand}"
+                        Content="{Binding FolderButtonLabel}"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Margin="0,0,12,0"
+                        Padding="12,0"
+                        FontSize="12" />
+
+                <Button Grid.Column="3"
+                        Command="{Binding StartRecognitionCommand}"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Background="#6B42CE"
+                        BorderBrush="#6B42CE"
+                        Padding="14,0"
+                        FontSize="12">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Play"
+                                                Width="17"
+                                                Height="17"
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding StartButtonLabel}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2"
+              Margin="1,18,1,16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Right"
+                           Text="{Binding ProgressLabel}"
+                           Foreground="#6B42CE"
+                           FontSize="12"
+                           AutomationProperties.LiveSetting="Polite" />
+                <TextBlock Text="{Binding BatchTitle}"
+                           FontWeight="SemiBold" />
+            </DockPanel>
+
+            <TextBlock Grid.Row="1"
+                       Text="{Binding BatchDescription}"
+                       Style="{StaticResource MutedText}"
+                       Margin="0,5,0,11"
+                       TextWrapping="Wrap" />
+
+            <ProgressBar Grid.Row="2"
+                         Height="5"
+                         Minimum="0"
+                         Maximum="100"
+                         Value="{Binding ProgressPercent, Mode=OneWay}"
+                         IsIndeterminate="{Binding IsLoadingFiles}"
+                         Background="#E8EAF1"
+                         Foreground="#6B42CE"
+                         AutomationProperties.Name="Batch recognition progress">
+                <ProgressBar.Template>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid x:Name="PART_Track"
+                              ClipToBounds="True">
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="2.5" />
+                            <Border x:Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    Background="{TemplateBinding Foreground}"
+                                    CornerRadius="2.5" />
+                        </Grid>
+                    </ControlTemplate>
+                </ProgressBar.Template>
+            </ProgressBar>
+
+            <WrapPanel Grid.Row="3"
+                       Margin="0,9,0,0">
+                <TextBlock Style="{StaticResource MutedText}"
+                           Margin="0,0,18,0">
+                    <Run Text="No artifact  " />
+                    <Run Text="{Binding NoArtifactCount, Mode=OneWay}"
+                         Foreground="#23745E"
+                         FontWeight="SemiBold" />
+                </TextBlock>
+                <TextBlock Style="{StaticResource MutedText}"
+                           Margin="0,0,18,0">
+                    <Run Text="Artifacts  " />
+                    <Run Text="{Binding ArtifactCount, Mode=OneWay}"
+                         Foreground="#946014"
+                         FontWeight="SemiBold" />
+                </TextBlock>
+                <TextBlock Style="{StaticResource MutedText}"
+                           Margin="0,0,18,0">
+                    <Run Text="Failed  " />
+                    <Run Text="{Binding FailedCount, Mode=OneWay}"
+                         Foreground="#BA4A55"
+                         FontWeight="SemiBold" />
+                </TextBlock>
+                <TextBlock Style="{StaticResource MutedText}"
+                           Margin="0,0,18,0">
+                    <Run Text="Active  " />
+                    <Run Text="{Binding ActiveCount, Mode=OneWay}" />
+                </TextBlock>
+                <TextBlock Style="{StaticResource MutedText}">
+                    <Run Text="Pending  " />
+                    <Run Text="{Binding PendingCount, Mode=OneWay}" />
+                </TextBlock>
+            </WrapPanel>
+        </Grid>
+
+        <Border Grid.Row="3"
+                Background="#FFF0F1"
+                CornerRadius="6"
+                Padding="12,8"
+                Margin="0,0,0,12"
+                Visibility="{Binding HasError, Converter={StaticResource BoolVisibility}}">
+            <DockPanel>
+                <Button DockPanel.Dock="Right"
+                        Command="{Binding DismissErrorCommand}"
+                        Style="{StaticResource MaterialDesignToolButton}"
+                        Width="28"
+                        Height="28"
+                        ToolTip="Dismiss error"
+                        AutomationProperties.Name="Dismiss error">
+                    <materialDesign:PackIcon Kind="Close"
+                                             Width="16"
+                                             Height="16" />
+                </Button>
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#A23B47"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center"
+                           AutomationProperties.LiveSetting="Assertive" />
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="4"
+              MinHeight="240">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.6*"
+                                  MinWidth="390" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*"
+                                  MinWidth="280" />
+            </Grid.ColumnDefinitions>
+
+            <Border Background="White"
+                    BorderBrush="#E5E7EF"
+                    BorderThickness="1"
+                    CornerRadius="9"
+                    Padding="0,2,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Margin="14,12,14,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="150" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="File queue"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding FileCountLabel}"
+                                       Style="{StaticResource MutedText}"
+                                       Margin="9,0,0,0" />
+                        </StackPanel>
+
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 FontSize="12"
+                                 Padding="8,6"
+                                 materialDesign:HintAssist.Hint="Search files"
+                                 AutomationProperties.Name="Search file name or relative path" />
+                    </Grid>
+
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding Filters}"
+                             SelectedItem="{Binding SelectedFilter}"
+                             ItemContainerStyle="{StaticResource FilterItem}"
+                             Margin="6,0,6,9"
+                             Padding="0"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             FontSize="11"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             AutomationProperties.Name="Result filters">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Label}" />
+                                    <TextBlock Text="{Binding Count}"
+                                               Margin="6,0,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding FilesView}"
+                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              SelectionMode="Single"
+                              SelectionUnit="FullRow"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              CanUserSortColumns="False"
+                              CanUserReorderColumns="False"
+                              RowHeaderWidth="0"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="#EDF0F5"
+                              BorderThickness="0"
+                              Background="Transparent"
+                              RowBackground="White"
+                              MinRowHeight="56"
+                              CellStyle="{StaticResource QueueCell}"
+                              EnableRowVirtualization="True"
+                              EnableColumnVirtualization="True"
+                              ScrollViewer.CanContentScroll="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              AutomationProperties.Name="Recognition file queue">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="#F7F8FA" />
+                                <Setter Property="Foreground" Value="#707586" />
+                                <Setter Property="FontSize" Value="11" />
+                                <Setter Property="FontWeight" Value="Normal" />
+                                <Setter Property="Padding" Value="12,9" />
+                                <Setter Property="BorderThickness" Value="0" />
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Background" Value="White" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#F8F6FD" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#EEE8FA" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="FILE / SIZE"
+                                                    Width="*"
+                                                    MinWidth="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Grid ToolTip="{Binding InputPath}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="30" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <materialDesign:PackIcon Kind="FileImageOutline"
+                                                                     Foreground="#85899A"
+                                                                     Width="19"
+                                                                     Height="22"
+                                                                     VerticalAlignment="Center" />
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="12"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock FontSize="10"
+                                                           Foreground="#85899A"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Margin="0,3,0,0">
+                                                    <Run Text="{Binding FileSize, Mode=OneWay}" />
+                                                    <Run Text=" · " />
+                                                    <Run Text="{Binding RelativePath, Mode=OneWay}" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="STATUS"
+                                                    Width="105">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal"
+                                                    VerticalAlignment="Center">
+                                            <materialDesign:PackIcon Style="{StaticResource StatusIcon}"
+                                                                     Margin="0,0,5,0" />
+                                            <TextBlock Text="{Binding StatusLabel}"
+                                                       FontSize="11"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="RESULT"
+                                                    Width="120">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource ResultBadge}"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ResultLabel}"
+                                                       Style="{StaticResource ResultText}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Grid.Row="2"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Margin="18,45,18,12"
+                                Visibility="{Binding ShowEmptyQueue, Converter={StaticResource BoolVisibility}}">
+                        <materialDesign:PackIcon Kind="FolderOutline"
+                                                 Width="30"
+                                                 Height="30"
+                                                 Foreground="#9C92B5"
+                                                 HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding EmptyQueueTitle}"
+                                   FontWeight="SemiBold"
+                                   Margin="0,12,0,5"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding EmptyQueueDescription}"
+                                   Style="{StaticResource MutedText}"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="1"
+                          Width="5"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          Background="Transparent"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          AutomationProperties.Name="Resize file queue and details" />
+
+            <Border Grid.Column="2"
+                    Background="White"
+                    BorderBrush="#E5E7EF"
+                    BorderThickness="1"
+                    CornerRadius="9">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Visibility="{Binding HasSelection, Converter={StaticResource BoolVisibility}}">
+                        <StackPanel Margin="16">
+                            <TextBlock Text="{Binding SelectedItem.Name}"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource MutedText}"
+                                       Margin="0,4,0,10">
+                                <Run Text="{Binding SelectedItem.FileSize, Mode=OneWay}" />
+                                <Run Text=" · DICOM" />
+                            </TextBlock>
+
+                            <Border Background="#F4F5F9"
+                                    Padding="10"
+                                    CornerRadius="6"
+                                    Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel DataContext="{Binding SelectedItem}"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center">
+                                        <materialDesign:PackIcon Style="{StaticResource StatusIcon}"
+                                                                 Margin="0,0,5,0" />
+                                        <TextBlock Text="{Binding StatusLabel}"
+                                                   FontSize="11"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <Border Grid.Column="1"
+                                            DataContext="{Binding SelectedItem}"
+                                            Style="{StaticResource ResultBadge}"
+                                            Visibility="{Binding IsCompleted, Converter={StaticResource BoolVisibility}}">
+                                        <TextBlock Text="{Binding ResultLabel}"
+                                                   Style="{StaticResource ResultText}" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <DockPanel Margin="0,0,0,8">
+                                <Button DockPanel.Dock="Right"
+                                        Command="{Binding RefreshPreviewCommand}"
+                                        IsEnabled="{Binding CanOpenOutput}"
+                                        Style="{StaticResource MaterialDesignToolButton}"
+                                        Height="24"
+                                        Width="24"
+                                        ToolTip="Reload preview"
+                                        AutomationProperties.Name="Reload output preview">
+                                    <materialDesign:PackIcon Kind="Refresh"
+                                                             Width="16"
+                                                             Height="16" />
+                                </Button>
+                                <TextBlock Text="Output image"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                            </DockPanel>
+
+                            <Border Background="#181D27"
+                                    Height="160"
+                                    CornerRadius="6"
+                                    ClipToBounds="True">
+                                <Grid Margin="10">
+                                    <Image Source="{Binding PreviewImage}"
+                                           Stretch="Uniform"
+                                           Visibility="{Binding HasPreview, Converter={StaticResource BoolVisibility}}"
+                                           AutomationProperties.Name="Recognition output image" />
+                                    <StackPanel VerticalAlignment="Center"
+                                                Margin="10"
+                                                Visibility="{Binding HasNoPreview, Converter={StaticResource BoolVisibility}}">
+                                        <materialDesign:PackIcon Kind="ImageOutline"
+                                                                 Width="30"
+                                                                 Height="30"
+                                                                 Foreground="#8F99AE"
+                                                                 HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding PreviewMessage}"
+                                                   Foreground="#BCC4D4"
+                                                   FontSize="11"
+                                                   TextWrapping="Wrap"
+                                                   TextAlignment="Center"
+                                                   Margin="0,10,0,0" />
+                                    </StackPanel>
+                                    <ProgressBar VerticalAlignment="Bottom"
+                                                 Height="3"
+                                                 IsIndeterminate="True"
+                                                 Foreground="#B6A0ED"
+                                                 Visibility="{Binding IsLoadingPreview, Converter={StaticResource BoolVisibility}}" />
+                                </Grid>
+                            </Border>
+
+                            <Grid Margin="0,14,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Updated"
+                                           Style="{StaticResource MutedText}" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding SelectedItem.UpdatedAt}"
+                                           FontSize="12" />
+                            </Grid>
+
+                            <Expander Header="Notes and file paths"
+                                      FontSize="12"
+                                      IsExpanded="{Binding SelectedItem.IsFailed, Mode=OneWay}">
+                                <StackPanel Margin="0,9,0,0">
+                                    <TextBlock Text="SOURCE"
+                                               Foreground="#85899A"
+                                               FontSize="10" />
+                                    <TextBox Text="{Binding SelectedItem.InputPath, Mode=OneWay}"
+                                             IsReadOnly="True"
+                                             TextWrapping="Wrap"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             FontSize="11"
+                                             Padding="0,4" />
+                                    <TextBlock Text="OUTPUT"
+                                               Foreground="#85899A"
+                                               FontSize="10"
+                                               Margin="0,8,0,0" />
+                                    <TextBox Text="{Binding SelectedItem.OutputPath, Mode=OneWay}"
+                                             IsReadOnly="True"
+                                             TextWrapping="Wrap"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             FontSize="11"
+                                             Padding="0,4" />
+                                    <TextBlock Text="MODEL NOTES / ERROR"
+                                               Foreground="#85899A"
+                                               FontSize="10"
+                                               Margin="0,8,0,0" />
+                                    <TextBox Text="{Binding SelectedItem.Comments, Mode=OneWay}"
+                                             IsReadOnly="True"
+                                             TextWrapping="Wrap"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             FontSize="11"
+                                             Padding="0,4" />
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Border Grid.Row="1"
+                            BorderBrush="#E5E7EF"
+                            BorderThickness="0,1,0,0"
+                            Padding="16,10"
+                            Visibility="{Binding HasSelection, Converter={StaticResource BoolVisibility}}">
+                        <StackPanel>
+                            <Button Command="{Binding RetrySelectedCommand}"
+                                    Content="Retry this file"
+                                    Margin="0,0,0,7"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Visibility="{Binding SelectedItem.IsFailed, Converter={StaticResource BoolVisibility}}" />
+                            <Button Command="{Binding OpenOutputCommand}"
+                                    Content="Open output image"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}" />
+                            <UniformGrid Columns="2"
+                                         Margin="0,5,0,0">
+                                <Button Command="{Binding OpenSourceCommand}"
+                                        Content="Open source"
+                                        FontSize="11"
+                                        Padding="6,0"
+                                        Style="{StaticResource MaterialDesignFlatButton}" />
+                                <Button Command="{Binding ShowOutputInFolderCommand}"
+                                        Content="Show output"
+                                        FontSize="11"
+                                        Padding="6,0"
+                                        Style="{StaticResource MaterialDesignFlatButton}" />
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Select a file to view its details."
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="25"
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock"
+                                   BasedOn="{StaticResource MutedText}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasSelection}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <DockPanel Grid.Row="5"
+                   Margin="1,12,1,0">
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal">
+                <Ellipse Width="6"
+                         Height="6"
+                         Margin="0,0,6,0"
+                         VerticalAlignment="Center">
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Setter Property="Fill" Value="#A3A8B8" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                    <Setter Property="Fill" Value="#23745E" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+                <TextBlock Text="{Binding ConnectionLabel}"
+                           Style="{StaticResource MutedText}"
+                           FontSize="11"
+                           AutomationProperties.LiveSetting="Polite" />
+            </StackPanel>
+            <TextBlock Text="Includes subfolders · Generated output excluded"
+                       Style="{StaticResource MutedText}"
+                       FontSize="11" />
         </DockPanel>
     </Grid>
 </UserControl>

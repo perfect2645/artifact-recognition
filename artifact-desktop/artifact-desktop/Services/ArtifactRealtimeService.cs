@@ -16,9 +16,10 @@ namespace artifact.desktop.Services
     {
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            signalRClient.MessageReceived -= OnArtifactMessageReceived;
+            signalRClient.MessageReceived += OnArtifactMessageReceived;
             await signalRClient.StartAsync(cancellationToken);
             await signalRClient.JoinGroupAsync(SharedConstants.SignalrClientGroup, cancellationToken);
-            signalRClient.MessageReceived += OnArtifactMessageReceived;
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
