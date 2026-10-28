@@ -206,5 +206,7 @@ def main() -> int:
     finally:
         worker.stop()
 
+    return 0
+
 if __name__ == "__main__":
     sys.exit(main())
