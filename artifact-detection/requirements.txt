@@ -1,21 +1,20 @@
 # Dependencies for artifact-detection
 # Generated based on imports in src/
 
+torch==2.10.0
 # DICOM medical image processing
-pydicom
+pydicom==3.0.2
 
 # Numerical computing
-numpy
+numpy==2.4.2
 
 # Image processing (PIL)
-Pillow
-
-# Deep learning inference
-torch
-torchvision
+Pillow==12.1.0
+# Deep learning inferencetorch
+torchvision==0.25.0
 
 # Plotting for PDF report generation
-matplotlib
+matplotlib==3.10.8
 
 # SignalR real-time communication client
-signalrcore
+signalrcore==1.0.2

@@ -1,0 +1,11 @@
+**
+!Dockerfile
+!requirements.txt
+
+!src/
+!src/controller/
+!src/controller/*.py
+!src/messaging/
+!src/messaging/*.py
+!src/model/
+!src/model/best_model.pth
