@@ -1,6 +1,6 @@
 ﻿services:
   artifact-api:
-    image: artifact-api:dev
+    image: "artifact-api:${IMAGE_TAG:-dev}"
     container_name: artifact-api
 
     ports:
