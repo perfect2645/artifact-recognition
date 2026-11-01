@@ -135,15 +135,10 @@
         </Grid.RowDefinitions>
 
         <StackPanel Margin="0,0,0,20">
-            <TextBlock Text="WORKSPACE / RECOGNITION"
-                       Foreground="#85899A"
-                       FontSize="10" />
-            <TextBlock Text="Batch recognition"
+            <TextBlock Text="Bulk recognition"
                        FontSize="25"
                        FontWeight="SemiBold"
                        Margin="0,6,0,3" />
-            <TextBlock Text="From source files to recognition results, in one workspace."
-                       Style="{StaticResource MutedText}" />
         </StackPanel>
 
         <Border Grid.Row="1"

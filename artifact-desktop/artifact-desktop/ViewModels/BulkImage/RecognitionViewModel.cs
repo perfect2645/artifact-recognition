@@ -179,8 +179,6 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
         RefreshState();
         try
         {
-            // Subscribe before submitting so a fast worker cannot finish before live updates are ready.
-            await _connection.JoinGroupAsync(SharedConstants.SignalrClientGroup, cancellationToken);
             var response = await _recognitionService.SubmitRecognitionAsync(new RecognitionHttpRequest
             {
                 RelativePath = Constants.RecognitionRequestPath,

@@ -16,9 +16,9 @@
 
     <ItemGroup>
       <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-      <PackageReference Include="MaterialDesignColors" Version="5.3.3-ci1349" />
-      <PackageReference Include="MaterialDesignThemes" Version="5.3.3-ci1349" />
-      <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.10" />
+      <PackageReference Include="MaterialDesignColors" Version="5.4.0" />
+      <PackageReference Include="MaterialDesignThemes" Version="5.4.0" />
+      <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.14" />
     </ItemGroup>
 
     <ItemGroup>
