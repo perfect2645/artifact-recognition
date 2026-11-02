@@ -7,4 +7,10 @@
         <Setter Property="FontWeight" Value="Thin" />
         <Setter Property="Foreground" Value="#333" />
     </Style>
+
+    <Style x:Key="MutedText"
+               TargetType="TextBlock">
+        <Setter Property="Foreground" Value="#707586" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
 </ResourceDictionary>

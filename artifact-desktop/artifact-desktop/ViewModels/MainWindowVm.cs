@@ -1,4 +1,5 @@
 using artifact.desktop.Services.Navigation;
+using artifact.desktop.ViewModels.Recognition;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MaterialDesignThemes.Wpf;
 using Utils.Ioc;

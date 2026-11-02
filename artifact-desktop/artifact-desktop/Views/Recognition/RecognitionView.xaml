@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:artifact.desktop.Views.Recognition"
              Padding="28,24"
              Background="#F7F8FA"
              Foreground="#202333"
@@ -9,12 +10,6 @@
              FontSize="13">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolVisibility" />
-
-        <Style x:Key="MutedText"
-               TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#707586" />
-            <Setter Property="FontSize" Value="12" />
-        </Style>
 
         <Style x:Key="ResultBadge"
                TargetType="Border">
@@ -140,75 +135,7 @@
                        FontWeight="SemiBold"
                        Margin="0,6,0,3" />
         </StackPanel>
-
-        <Border Grid.Row="1"
-                Background="White"
-                BorderBrush="#E5E7EF"
-                BorderThickness="1"
-                CornerRadius="9"
-                Padding="16,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="44" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <Border Width="34"
-                        Height="36"
-                        Background="#F0EBFC"
-                        CornerRadius="7"
-                        HorizontalAlignment="Left">
-                    <materialDesign:PackIcon Kind="FolderOpenOutline"
-                                             Foreground="#6B42CE"
-                                             Width="21"
-                                             Height="21"
-                                             HorizontalAlignment="Center"
-                                             VerticalAlignment="Center" />
-                </Border>
-
-                <StackPanel Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Margin="0,0,12,0">
-                    <TextBlock Text="{Binding FolderName}"
-                               FontWeight="SemiBold"
-                               TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{Binding FolderDescription}"
-                               Style="{StaticResource MutedText}"
-                               FontSize="11"
-                               TextTrimming="CharacterEllipsis"
-                               ToolTip="{Binding FolderDescription}"
-                               Margin="0,3,0,0" />
-                </StackPanel>
-
-                <Button Grid.Column="2"
-                        Command="{Binding SelectFolderCommand}"
-                        Content="{Binding FolderButtonLabel}"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                        Margin="0,0,12,0"
-                        Padding="12,0"
-                        FontSize="12" />
-
-                <Button Grid.Column="3"
-                        Command="{Binding StartRecognitionCommand}"
-                        Style="{StaticResource MaterialDesignRaisedButton}"
-                        Background="#6B42CE"
-                        BorderBrush="#6B42CE"
-                        Padding="14,0"
-                        FontSize="12">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Play"
-                                                Width="17"
-                                                Height="17"
-                                                Margin="0,0,6,0"
-                                                VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding StartButtonLabel}"
-                                   VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-            </Grid>
-        </Border>
+        <local:RecognitionBanner Grid.Row="1" />
 
         <Grid Grid.Row="2"
               Margin="1,18,1,16">
@@ -240,7 +167,7 @@
                          Minimum="0"
                          Maximum="100"
                          Value="{Binding ProgressPercent, Mode=OneWay}"
-                         IsIndeterminate="{Binding IsLoadingFiles}"
+                         IsIndeterminate="{Binding BannerViewModel.IsLoadingFiles}"
                          Background="#E8EAF1"
                          Foreground="#6B42CE"
                          AutomationProperties.Name="Batch recognition progress">

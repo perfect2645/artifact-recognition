@@ -1,9 +1,10 @@
 using artifact.desktop.Generic;
+using artifact.desktop.Messaging.Local;
 using artifact.desktop.Messaging.Signalr;
 using artifact.desktop.Models;
 using artifact.desktop.Services;
 using artifact.desktop.ViewModels.Base;
-using artifact.shared;
+using artifact.desktop.ViewModels.Recognition;
 using artifact.shared.data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -21,8 +22,19 @@ using Utils.Ioc;
 namespace artifact.desktop.ViewModels;
 
 [Register(ServiceType = typeof(RecognitionViewModel), Lifetime = Lifetime.Singleton)]
-public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<ValueChangedMessage<ArtifactMessage>>
+public partial class RecognitionViewModel : ObservableRecipientVm,
+    IRecipient<ValueChangedMessage<ArtifactMessage>>,
+    IRecipient<RecognitionFolderLoadingChangedMessage>,
+    IRecipient<RecognitionFolderLoadedMessage>,
+    IRecipient<RecognitionFolderErrorChangedMessage>
 {
+    #region ViewModels
+
+    public BannerViewModel BannerViewModel { get; }
+
+    #endregion ViewModels
+    #region Properties
+    #endregion Properties
     private readonly IRecognitionService _recognitionService;
     private readonly IRecognitionFileService _files;
     private readonly IDispatcherService _dispatcher;
@@ -30,6 +42,7 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
     private readonly ILogger _logger;
     private readonly Dictionary<Guid, RecognitionItemUi> _attempts = [];
     private CancellationTokenSource? _previewCancellation;
+    private bool _lastPublishedIsBusy;
     public ObservableCollection<RecognitionItemUi> RecognitionItems { get; } = [];
     public ICollectionView FilesView { get; }
     public IReadOnlyList<RecognitionFilterOption> Filters { get; } =
@@ -41,8 +54,7 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
     [ObservableProperty] public partial RecognitionFilterOption SelectedFilter { get; set; }
     [ObservableProperty] public partial string SearchText { get; set; } = string.Empty;
     [ObservableProperty] public partial RecognitionItemUi? SelectedItem { get; set; }
-    [ObservableProperty] public partial string FolderPath { get; set; } = string.Empty;
-    [ObservableProperty] public partial bool IsLoadingFiles { get; set; }
+    
     [ObservableProperty] public partial bool IsSubmitting { get; set; }
     [ObservableProperty] public partial string? ErrorMessage { get; set; }
     [ObservableProperty] public partial BitmapSource? PreviewImage { get; set; }
@@ -50,10 +62,17 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
     [ObservableProperty] public partial string PreviewMessage { get; set; } = "Select a file to view its details.";
     [ObservableProperty] public partial HubConnectionState ConnectionState { get; set; }
 
-    public RecognitionViewModel(IMessenger messenger, IRecognitionService recognitionService,
-        IRecognitionFileService files, IDispatcherService dispatcher,
-        ISignalRClient<ArtifactMessage> connection, ILogger<RecognitionViewModel> logger) : base(messenger)
+    public RecognitionViewModel(
+        BannerViewModel bannerViewModel,
+        IMessenger messenger, 
+        IRecognitionService recognitionService,
+        IRecognitionFileService files, 
+        IDispatcherService dispatcher,
+        ISignalRClient<ArtifactMessage> connection, 
+        ILogger<RecognitionViewModel> logger) : base(messenger)
     {
+        BannerViewModel = bannerViewModel;
+
         _recognitionService = recognitionService;
         _files = files;
         _dispatcher = dispatcher;
@@ -72,8 +91,9 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
     public bool HasPreview => PreviewImage is not null;
     public bool HasNoPreview => PreviewImage is null;
     public bool IsBatchActive => _attempts.Values.Any(item => !item.IsTerminal);
-    public bool IsBusy => IsLoadingFiles || IsSubmitting || IsBatchActive;
-    public bool CanChangeFolder => !IsBusy;
+
+    public bool IsBusy => BannerViewModel.IsLoadingFiles || IsSubmitting || IsBatchActive;
+    
     public int TotalCount => RecognitionItems.Count;
     public int CompletedCount => RecognitionItems.Count(item => item.IsTerminal);
     public int ArtifactCount => RecognitionItems.Count(item => item.HasArtifact);
@@ -86,20 +106,18 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
     public double ProgressPercent => TotalCount == 0 ? 0 : 100d * CompletedCount / TotalCount;
     public string ProgressLabel => $"{CompletedCount} / {TotalCount} processed";
     public string FileCountLabel => $"{TotalCount} {(TotalCount == 1 ? "file" : "files")}";
-    public string FolderName => string.IsNullOrEmpty(FolderPath) ? "No folder selected" : new DirectoryInfo(FolderPath).Name;
-    public string FolderDescription => string.IsNullOrEmpty(FolderPath) ? "Choose a folder containing .dcm files" : FolderPath;
-    public string FolderButtonLabel => string.IsNullOrEmpty(FolderPath) ? "Select folder" : "Change folder";
+    
     public string StartButtonLabel => IsSubmitting ? "Submitting…" : IsBatchActive ? "Recognizing…"
         : PendingCount > 0 ? $"Start recognition · {PendingCount}"
         : FailedCount > 0 ? $"Retry failed · {FailedCount}"
         : HasFiles && CompletedCount == TotalCount ? "Batch complete" : "Start recognition";
-    public string BatchTitle => IsLoadingFiles ? "Reading folder…" : IsSubmitting ? "Submitting files…"
+    public string BatchTitle => BannerViewModel.IsLoadingFiles ? "Reading folder…" : IsSubmitting ? "Submitting files…"
         : IsBatchActive ? "Recognition in progress" : !HasFiles ? "Select a folder to begin"
         : CompletedCount == TotalCount ? "Batch complete" : "Files ready";
-    public string BatchDescription => IsLoadingFiles ? "Finding DICOM files and reading file information."
+    public string BatchDescription => BannerViewModel.IsLoadingFiles ? "Finding DICOM files and reading file information."
         : IsSubmitting ? "Connecting to live updates and submitting the selected files."
         : IsBatchActive ? "Results update automatically. Completed files are ready to review."
-        : !HasFiles ? (string.IsNullOrEmpty(FolderPath) ? "Your files and recognition results will appear below." : "No DICOM files were found in this folder.")
+        : !HasFiles ? (string.IsNullOrEmpty(BannerViewModel.FolderPath) ? "Your files and recognition results will appear below." : "No DICOM files were found in this folder.")
         : CompletedCount == TotalCount ? $"{ArtifactCount + NoArtifactCount + UnknownCount} succeeded · {FailedCount} failed · {CancelledCount} cancelled"
         : "Review the file queue, then start recognition.";
     public bool IsConnected => ConnectionState == HubConnectionState.Connected;
@@ -115,34 +133,7 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
     public string EmptyQueueDescription => HasFiles ? "Try another filter or search term." : "Select a folder to list its DICOM files.";
     public bool CanOpenOutput => SelectedItem?.HasOutput == true;
 
-    [RelayCommand(CanExecute = nameof(CanChangeFolder))]
-    private async Task SelectFolderAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            var path = _files.SelectFolder();
-            if (path is null) return;
-            ErrorMessage = null;
-            IsLoadingFiles = true;
-            var items = await _files.LoadFilesAsync(path, cancellationToken);
-            SelectedItem = null;
-            _attempts.Clear();
-            RecognitionItems.Clear();
-            foreach (var item in items) RecognitionItems.Add(item);
-            FolderPath = path;
-            SearchText = string.Empty;
-            SelectedFilter = Filters[0];
-            SelectedItem = RecognitionItems.FirstOrDefault();
-            RefreshState();
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Could not read the recognition folder.");
-            ErrorMessage = $"Could not read this folder. Check its location and access permissions. {ex.Message}";
-        }
-        finally { IsLoadingFiles = false; }
-    }
+
 
     private bool CanStartRecognition() => !IsBusy && (PendingCount > 0 || FailedCount > 0);
 
@@ -183,7 +174,7 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
             {
                 RelativePath = Constants.RecognitionRequestPath,
                 TaskId = Guid.NewGuid(),
-                FolderPath = FolderPath,
+                FolderPath = BannerViewModel.FolderPath,
                 Artifacts = items.Select(item => item.ToArtifact()).ToArray()
             }, cancellationToken);
             if (!response.IsSuccess) throw new InvalidOperationException(response.Message ?? "The service rejected this batch.");
@@ -220,6 +211,24 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
         RefreshState();
     });
 
+    public void Receive(RecognitionFolderLoadingChangedMessage message) =>
+        _dispatcher.InvokeOnUI(RefreshState);
+
+    public void Receive(RecognitionFolderLoadedMessage message) => _dispatcher.InvokeOnUI(() =>
+    {
+        SelectedItem = null;
+        _attempts.Clear();
+        RecognitionItems.Clear();
+        foreach (var item in message.Items) RecognitionItems.Add(item);
+        SearchText = string.Empty;
+        SelectedFilter = Filters[0];
+        SelectedItem = RecognitionItems.FirstOrDefault();
+        RefreshState();
+    });
+
+    public void Receive(RecognitionFolderErrorChangedMessage message) =>
+        _dispatcher.InvokeOnUI(() => ErrorMessage = message.ErrorMessage);
+
     private bool MatchesFilter(object value) => value is RecognitionItemUi item
         && (string.IsNullOrWhiteSpace(SearchText)
             || item.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
@@ -249,6 +258,13 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
 
     private void RefreshState()
     {
+        var isBusy = IsBusy;
+        if (_lastPublishedIsBusy != isBusy)
+        {
+            _lastPublishedIsBusy = isBusy;
+            Messenger.Send(new RecognitionBusyChangedMessage(isBusy));
+        }
+
         foreach (var filter in Filters) filter.Count = filter.Filter switch
         {
             RecognitionFilter.Artifacts => ArtifactCount,
@@ -256,14 +272,13 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
             RecognitionFilter.Failed => FailedCount,
             _ => TotalCount
         };
-        foreach (var name in new[] { nameof(HasFiles), nameof(IsBatchActive), nameof(IsBusy), nameof(CanChangeFolder),
+        foreach (var name in new[] { nameof(HasFiles), nameof(IsBatchActive), nameof(IsBusy),
         nameof(TotalCount), nameof(CompletedCount), nameof(ArtifactCount), nameof(NoArtifactCount), nameof(FailedCount),
         nameof(PendingCount), nameof(ActiveCount), nameof(UnknownCount), nameof(CancelledCount), nameof(ProgressPercent),
         nameof(ProgressLabel), nameof(FileCountLabel), nameof(StartButtonLabel), nameof(BatchTitle), nameof(BatchDescription) })
             OnPropertyChanged(name);
         StartRecognitionCommand.NotifyCanExecuteChanged();
         RetrySelectedCommand.NotifyCanExecuteChanged();
-        SelectFolderCommand.NotifyCanExecuteChanged();
         OpenOutputCommand.NotifyCanExecuteChanged();
         ShowOutputInFolderCommand.NotifyCanExecuteChanged();
         // Bound row values already update in place. Refreshing the unfiltered view would reset scroll/selection.
@@ -274,11 +289,6 @@ public partial class RecognitionViewModel : ObservableRecipientVm, IRecipient<Va
     partial void OnSearchTextChanged(string value) { if (FilesView is not null) RefreshFiles(); }
     partial void OnSelectedFilterChanged(RecognitionFilterOption value) { if (FilesView is not null) RefreshFiles(); }
     partial void OnIsSubmittingChanged(bool value) => RefreshState();
-    partial void OnIsLoadingFilesChanged(bool value) => RefreshState();
-    partial void OnFolderPathChanged(string value)
-    {
-        OnPropertyChanged(nameof(FolderName)); OnPropertyChanged(nameof(FolderDescription)); OnPropertyChanged(nameof(FolderButtonLabel));
-    }
     partial void OnErrorMessageChanged(string? value) => OnPropertyChanged(nameof(HasError));
     partial void OnPreviewImageChanged(BitmapSource? value)
     {

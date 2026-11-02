@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Utils.Ioc;
 
-namespace artifact.desktop.ViewModels.BulkImage
+namespace artifact.desktop.ViewModels.Recognition
 {
     [Register(ServiceType = typeof(FolderDialogViewModel), Lifetime = Lifetime.Singleton)]
     public partial class FolderDialogViewModel(IMessenger messenger) : ObservableObject
