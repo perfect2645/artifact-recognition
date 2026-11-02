@@ -1,148 +1,161 @@
-# Docker Compose quick guide / Docker Compose 操作速查
+# Compose deployment and worker connection / Compose 部署与 worker 连接速查
 
-Use the existing [Compose configuration](../../artifact-service-domain/devops/docker/docker-compose.yaml). Run all commands in the same PowerShell terminal.
-使用现有的 [Compose 配置](../../artifact-service-domain/devops/docker/docker-compose.yaml)，所有命令在同一个 PowerShell 终端执行。
+First [build the images](./docker-image.md). Run commands in PowerShell, continuing only after each step succeeds. Compose currently manages the API only; the Python command below is a temporary connection test.
+先[构建镜像](./docker-image.md)。在 PowerShell 中逐步执行，成功后再继续。目前 Compose 只管理 API；下面的 Python 命令是临时连接测试。
 
-## 1. Prepare / 准备
+## 1. Set paths and variables / 设置路径与变量
 
 ```powershell
-Set-Location 'D:\projects\artifact-recognition\artifact-service-domain'
+$repoPath = "D:\projects\artifact-recognition"
+# Office PC: use this instead / 办公室电脑改用：
+# $repoPath = "D:\dotNet\personal\projects\artifact-recognition"
 
-# Office PC / 办公室电脑：
-# Set-Location 'D:\dotNet\personal\projects\artifact-recognition\artifact-service-domain'
+$composeFile = Join-Path $repoPath 'artifact-service-domain\devops\docker\docker-compose.yaml'
+Set-Location (Join-Path $repoPath 'artifact-service-domain')
 
 $env:CERTIFICATE_NAME = "localhost-artifact.pfx"
-# Office certificate / 办公室证书：
+$env:API_TLS_HOSTNAME = Read-Host "DNS hostname covered by the certificate SAN (not localhost)"
+# Office PC: replace the two assignments above / 办公室替换上面两项：
 # $env:CERTIFICATE_NAME = "localhost-doraemon.pfx"
+# $env:API_TLS_HOSTNAME = "localhost-doraemon"
+```
 
-# Select the image tag to build or deploy / 选择要构建或部署的镜像标签
-$env:IMAGE_TAG = "dev-20261030-1.0.0"
+`CERTIFICATE_NAME` selects the PFX file; `API_TLS_HOSTNAME` supplies the API's Docker network alias and must match its certificate. The filename does not determine the SAN. The PFX password comes from the mounted Development configuration.
+`CERTIFICATE_NAME` 选择 PFX 文件；`API_TLS_HOSTNAME` 提供 API 的 Docker 网络别名，必须匹配证书。文件名不决定 SAN。PFX 密码来自挂载的 Development 配置。
 
-docker compose version
+Keep the image tags from the build terminal. **Only in a new terminal**, restore the exact existing tags:
+保留构建终端中的镜像标签。**仅新终端需要**恢复已有镜像的准确标签：
+
+```powershell
+docker image ls
+$env:IMAGE_TAG = Read-Host "Existing artifact-api tag"
+$env:WORKER_IMAGE_TAG = Read-Host "Existing artifact-worker tag"
+```
+
+Do not leave tags empty or generate new timestamps just for deployment. `${IMAGE_TAG:-dev}` falls back to `dev`, not the newest build. `${API_TLS_HOSTNAME:?...}` rejects an unset or empty hostname.
+不要留空标签，也不要仅为了部署生成新时间戳。`${IMAGE_TAG:-dev}` 默认选择 `dev`，不是最新构建；`${API_TLS_HOSTNAME:?...}` 会拒绝未设置或为空的主机名。
+
+## 2. Validate and deploy the API / 验证并部署 API
+
+```powershell
 New-Item -ItemType Directory -Path .\container-logs -Force
-
 Test-Path -LiteralPath .\appsettings.Development.json -PathType Leaf
 Test-Path -LiteralPath ".\Configurations\certs\$env:CERTIFICATE_NAME" -PathType Leaf
 
-```
-
-Both checks must return True. The certificate password in the Development configuration must match the selected certificate. The client must trust the certificate, and it must be valid for localhost.
-两项检查必须返回 True。Development 配置中的证书密码必须与所选证书匹配；客户端必须信任证书，且证书须对 localhost 有效。
-
-The image tag is an example: choose a unique tag for each new build. To deploy an existing image, select its exact tag. Compose uses `image: "artifact-api:${IMAGE_TAG:-dev}"`; leaving `IMAGE_TAG` unset or empty selects `dev`, not the latest versioned build.
-镜像标签仅为示例：每次新构建选择唯一标签；部署已有镜像时选择其准确标签。Compose 使用 `image: "artifact-api:${IMAGE_TAG:-dev}"`；`IMAGE_TAG` 未设置或为空时会选择 `dev`，而不是最新的版本化镜像。
-
-## 2. Publish and build / 发布与构建
-
-Skip if the required image is already built. Continue only after each command succeeds.
-如果已构建所需镜像，可以跳过。每条命令成功后再继续。
-
-```powershell
-dotnet publish .\artifact.service.domain.csproj -c Release -o .\publish --self-contained false -p:UseAppHost=false
-
-docker build -f .\devops\docker\Dockerfile.publish -t "artifact-api:${env:IMAGE_TAG}" .
-
-```
-
-## 3. Validate Compose / 验证配置
-
-```powershell
-docker compose -f .\devops\docker\docker-compose.yaml config --quiet
+docker compose -f $composeFile config --quiet
 $LASTEXITCODE
-
+docker compose -f $composeFile config --images
 ```
 
-Expected: 0. This validates configuration, not runtime access to files or ports.
-预期为 0。这里只验证配置，不验证运行时文件访问或端口可用性。
-
-Check that Compose selects the image tag built above:
-确认 Compose 选择了上面构建的镜像标签：
+Both path checks must return `True`, validation must return `0`, and the selected image must match `artifact-api:${IMAGE_TAG}`. Then:
+两项路径检查须为 `True`，验证退出码须为 `0`，所选镜像须匹配 `artifact-api:${IMAGE_TAG}`。然后执行：
 
 ```powershell
-docker compose -f .\devops\docker\docker-compose.yaml config --images
+docker compose -f $composeFile up -d --pull never
+docker compose -f $composeFile ps -a
+docker compose -f $composeFile logs --tail 20 artifact-api
 ```
 
-Expected for the example: `artifact-api:dev-20261030-1.0.0`. Stop if it does not match the intended image.
-示例预期输出：`artifact-api:dev-20261030-1.0.0`。如果与目标镜像不一致，先修正再继续。
+`up -d` applies changes and runs in the background; `--pull never` uses local images only. No manual container deletion or rebuild is needed for alias/port changes.
+`up -d` 应用变更并后台运行；`--pull never` 只使用本地镜像。仅修改别名或端口，不需要手动删除容器或重新构建。
 
-## 4. Remove a manual container, if present / 如有手动创建的旧容器，先移除
-
-Only for the first migration from docker run. Skip if absent or already managed by this Compose project.
-仅用于首次从 docker run 迁移；容器不存在或已由本 Compose 项目管理时跳过。
+Expected: API `Up`, environment `Development`, Windows `7092` → container HTTPS `8081`. API logs persist in the Windows `container-logs` folder.
+预期：API 为 `Up`，环境为 `Development`，Windows `7092` → 容器 HTTPS `8081`。API 日志保存在 Windows 的 `container-logs` 文件夹。
 
 ```powershell
-docker ps -a --filter "name=^/artifact-api$"
-
+curl.exe -i [https://localhost:7092/api/recognition](https://localhost:7092/api/recognition)
 ```
 
-Before removing it, confirm its logs are bind-mounted or back them up. Removing a container deletes its writable layer, but not bind-mounted Windows files.
-删除前确认日志已绑定挂载或完成备份。删除容器会删除其可写层，但不会删除绑定挂载的 Windows 文件。
+Expected: `405` with `Allow: POST`, because this request uses GET. Swagger: [https://localhost:7092/swagger](https://localhost:7092/swagger).
+预期返回 `405` 且包含 `Allow: POST`，因为这里使用 GET。Swagger：[https://localhost:7092/swagger](https://localhost:7092/swagger)。
 
-```powershell
-docker stop artifact-api
-docker rm artifact-api
-
-```
-
-## 5. Start and check / 启动与检查
-
-For an existing Compose deployment, `up -d` recreates the container when the selected image or configuration changes. No manual `stop`/`rm` is needed. Keep the previous image until the new deployment passes verification.
-已有 Compose 部署在所选镜像或配置变化时，`up -d` 会重新创建容器，无需手动 `stop`/`rm`。新部署验证通过前保留旧镜像。
-
-```powershell
-docker compose -f .\devops\docker\docker-compose.yaml up -d
-
-docker compose -f .\devops\docker\docker-compose.yaml ps -a
-
-docker compose -f .\devops\docker\docker-compose.yaml logs --tail 30 artifact-api
-
-```
-
-Expected: Up, HTTPS listening on 8081, environment Development.
-预期：状态为 Up，使用所选版本的镜像，HTTPS 监听 8081，环境为 Development。
-
-## 6. Verify HTTPS and persistent logs / 验证 HTTPS 和持久化日志
+For the local development CA only, if Windows Schannel reports unavailable revocation information:
+仅针对本地开发 CA，如果 Windows Schannel 报吊销信息不可用：
 
 ```powershell
 curl.exe -i --ssl-revoke-best-effort [https://localhost:7092/api/recognition](https://localhost:7092/api/recognition)
-
-Get-ChildItem -LiteralPath .\container-logs -Filter "app-*.log" -File |
-    Sort-Object Name -Descending |
-    Select-Object -First 1 |
-    Get-Content -Tail 10
-
 ```
 
-Expected: HTTP 405 with Allow: POST because this request uses GET. Open Swagger at [https://localhost:7092/swagger](https://localhost:7092/swagger) to test POST; an empty artifacts list avoids sending recognition messages.
-预期：HTTP 405 且包含 Allow: POST，因为这里发送的是 GET。打开 [https://localhost:7092/swagger](https://localhost:7092/swagger) 测试 POST；使用空 artifacts 列表可避免发送识别消息。
+This relaxes missing/offline revocation checks, not chain or hostname validation. It is not a production PKI default; do not replace it with `-k`.
+它放宽吊销信息缺失或离线时的检查，不关闭证书链或主机名验证。这不是生产 PKI 默认设置，不要改用 `-k`。
 
-## Common commands / 常用命令
+## 3. Prepare Python's public trust file / 准备 Python 公钥信任文件
+
+Windows trust is not automatically inherited by Linux containers. Prepare a PEM certificate file containing no private key:
+Linux 容器不会自动继承 Windows 信任。准备不含私钥的 PEM 证书文件：
+
+| Environment / 环境 | Trust material / 信任材料                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home / 家里        | Root CA public certificate, not the leaf PFX. / 根 CA 公钥证书，不是叶子 PFX。                                                                    |
+| Office / 办公室    | Self-signed server public certificate exported today: `src\devops\docker\certs\localhost-doraemon-public.pem`. / 今天导出的自签名服务端公钥证书。 |
+
+If needed, export the appropriate public certificate using Windows Certificate Viewer → Details → Copy to File → Base-64 encoded X.509. PEM contains `BEGIN CERTIFICATE`; never export a private key for the worker. The API still needs its PFX.
+如需导出，可使用 Windows 证书查看器 → 详细信息 → 复制到文件 → Base-64 编码 X.509。PEM 包含 `BEGIN CERTIFICATE`；不要给 worker 导出私钥。API 仍使用自己的 PFX。
 
 ```powershell
-# Follow logs; Ctrl+C exits following, not the container / 跟踪日志，Ctrl+C 不会停止容器
-docker compose -f .\devops\docker\docker-compose.yaml logs -f --tail 20 artifact-api
+Set-Location (Join-Path $repoPath 'artifact-detection')
 
-# Stop without deleting / 停止但不删除
-docker compose -f .\devops\docker\docker-compose.yaml stop
-
-# Start again or apply configuration/image changes / 再次启动或应用配置、镜像变更
-docker compose -f .\devops\docker\docker-compose.yaml up -d
-
-# Remove Compose containers and default network; Windows logs remain / 删除容器和默认网络，保留 Windows 日志
-docker compose -f .\devops\docker\docker-compose.yaml down
-
+$apiTrustFile = Read-Host "Path to the trusted public PEM certificate"
+$apiTrustFile = (Resolve-Path -LiteralPath $apiTrustFile -ErrorAction Stop).Path
 ```
 
-After code changes: select a new image tag, then repeat publish → build → up -d. This Compose file does not build the image automatically. In a new terminal, set the project directory, `CERTIFICATE_NAME`, and `IMAGE_TAG` again; use the intended image's exact tag.
-修改代码后：先选择新镜像标签，再重复 发布 → 构建 → up -d。此 Compose 文件不会自动构建镜像。打开新终端后，需要重新设置项目目录、`CERTIFICATE_NAME` 和 `IMAGE_TAG`，使用目标镜像的准确标签。
+## 4. Run the verified SignalR probe / 运行已验证的 SignalR 探测容器
 
-## Certificate chain and revocation / 证书链与吊销
+The API's network is normally `docker_default`; if the Compose project name changes, use its actual network. Containers connect through the certificate-matching alias on port `8081`, not Windows port `7092`.
+API 网络通常为 `docker_default`；若修改 Compose 项目名，使用实际网络名。容器通过匹配证书的别名和 `8081` 端口连接，不走 Windows 的 `7092`。
 
-The server (container) must serve the leaf certificate with its private key (`localhost-artifact.pfx`); the root CA public certificate (`Fawei Local Dev Root CA`) belongs in the client's trusted root store, not in the container. The client's chain validates against the trusted root CA.
-服务器（container）必须使用叶子证书 + 私钥（`localhost-artifact.pfx`）；根 CA 公钥证书（`Fawei Local Dev Root CA`）属于客户端受信任根存储，不放进容器。客户端链校验到已信任的根 CA 即通过。
+```powershell
+docker run --rm `
+    --name artifact-worker-probe `
+    --pull=never `
+    --network docker_default `
+    --mount "type=bind,source=${apiTrustFile},target=/trust/api-public.pem,readonly" `
+    --env "SSL_CERT_FILE=/trust/api-public.pem" `
+    --env "REQUESTS_CA_BUNDLE=/trust/api-public.pem" `
+    "artifact-worker:${env:WORKER_IMAGE_TAG}" `
+    --hub-url "https://${env:API_TLS_HOSTNAME}:8081/hubs/signalr" `
+    --result-url "https://${env:API_TLS_HOSTNAME}:8081/api/artifact" `
+    --group-name docker-learning-probe `
+    --event-name docker-learning-probe
+```
 
-The leaf has no CRL or OCSP revocation info, so Schannel's strict revocation check fails with `CRYPT_E_NO_REVOCATION_CHECK`. `--ssl-revoke-best-effort` tolerates the missing revocation info while still validating the chain against the trusted root CA; this is the usual practice for private / internal CAs.
-当前叶子证书无 CRL/OCSP 吊销信息，严格吊销检查会报 `CRYPT_E_NO_REVOCATION_CHECK`。`--ssl-revoke-best-effort` 在保留根 CA 链校验的同时容忍缺失吊销信息，这也是私有/内部 CA 客户端的常见做法。
+`SSL_CERT_FILE` configures Python/OpenSSL trust; `REQUESTS_CA_BUNDLE` supplies trust for Requests-based components. Verification stays enabled. Arguments after the image name go to the Python worker.
+`SSL_CERT_FILE` 配置 Python/OpenSSL 信任；`REQUESTS_CA_BUNDLE` 为 Requests 组件提供信任文件。验证保持开启。镜像名后的参数传给 Python worker。
 
-To make plain `curl` (strict revocation) succeed, the leaf must carry CRL/OCSP revocation info: provision an OCSP responder or CRL distribution point for the root CA, then re-issue the leaf with revocation extensions.
-若要让普通 `curl`（严格吊销）也通过，叶子证书必须携带 CRL/OCSP 吊销信息：为根 CA 提供 OCSP responder 或 CRL 分发点，并重新签发带吊销扩展的叶子证书。
+No `-d` means foreground logs. Expected: `Connected to hub`; in another terminal, confirm the API recorded `joined group : docker-learning-probe`:
+不加 `-d`，日志在前台显示。预期出现 `Connected to hub`；在另一个终端确认 API 记录了 `joined group : docker-learning-probe`：
+
+```powershell
+docker logs --tail 30 artifact-api
+```
+
+Stop the probe from another terminal:
+从另一个终端停止探测容器：
+
+```powershell
+docker stop -t 10 artifact-worker-probe
+docker ps -a --filter "name=^/artifact-worker-probe$"
+```
+
+`--rm` removes the container after it exits, not the image. Today the worker needed a forced stop (`137`); graceful shutdown remains unresolved. `-t 10` allows a forced kill after the timeout.
+`--rm` 在容器退出后删除容器，不删除镜像。今天 worker 被强制停止（`137`），正常关闭问题尚未解决；`-t 10` 超时后允许强制终止。
+
+## 5. Remaining work / 尚待完成
+
+- Map Windows input/output folders to Linux paths. / 将 Windows 输入输出目录映射到 Linux 路径。
+- Start the persistent worker and test one real recognition task/result callback. The probe does not join `recognition-model`. / 启动长期运行的 worker，验证一次实际识别及结果回传；探测容器不加入 `recognition-model`。
+- Fix and verify graceful shutdown before production use. / 生产使用前修复并验证正常关闭。
+
+## Common API commands / API 常用命令
+
+Use the variables from step 1. `start` reuses the existing container; changed configuration/images require `up -d`.
+使用第一步的变量。`start` 启动已有容器；配置或镜像变更使用 `up -d`。
+
+```powershell
+docker compose -f $composeFile start artifact-api
+docker compose -f $composeFile stop artifact-api
+docker compose -f $composeFile logs -f --tail 20 artifact-api
+```
+
+For `logs -f`, Ctrl+C only stops following logs. Compose currently does not manage the standalone Python probe.
+对于 `logs -f`，Ctrl+C 只退出日志跟踪。目前 Compose 不管理单独启动的 Python 探测容器。

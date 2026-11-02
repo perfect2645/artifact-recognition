@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY requirements.txt ./
 
 RUN python -m pip install --no-cache-dir \
     torch==2.10.0 torchvision==0.25.0 \

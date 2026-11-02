@@ -32,3 +32,7 @@
         target: /app/logs
         bind:
           create_host_path: false
+    networks:
+      default:
+        aliases:
+          - "${API_TLS_HOSTNAME:?Set API_TLS_HOSTNAME to a hostname covered by the certificate}"
