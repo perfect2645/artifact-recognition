@@ -1,9 +1,6 @@
 ﻿using artifact.desktop.Models;
-using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
-using System.Windows;
-using System.Windows.Documents;
 using System.Windows.Media.Imaging;
 using Utils.Ioc;
 
@@ -12,11 +9,6 @@ namespace artifact.desktop.Services;
 [Register(ServiceType = typeof(IRecognitionFileService), Lifetime = Lifetime.Singleton)]
 public class RecognitionFileService : IRecognitionFileService
 {
-    public string? SelectFolder()
-    {
-        var dialog = new OpenFolderDialog { Title = "Select a folder containing DICOM files" };
-        return dialog.ShowDialog(Application.Current.MainWindow) == true ? dialog.FolderName : null;
-    }
     public Task<IReadOnlyList<RecognitionItemUi>> LoadFilesAsync(string folder, CancellationToken cancellationToken)
     {
         return Task.Run<IReadOnlyList<RecognitionItemUi>>(() =>

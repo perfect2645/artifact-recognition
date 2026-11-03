@@ -211,7 +211,7 @@ public partial class RecognitionViewModel : ObservableRecipientVm,
         RefreshState();
     });
 
-    public void Receive(RecognitionFolderLoadingChangedMessage message) =>
+    public void Receive(RecognitionFolderLoadingChangedMessage _) =>
         _dispatcher.InvokeOnUI(RefreshState);
 
     public void Receive(RecognitionFolderLoadedMessage message) => _dispatcher.InvokeOnUI(() =>

@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:views="clr-namespace:artifact.desktop.Views"
-             xmlns:local="clr-namespace:artifact.desktop.Views.Recognition"
+             xmlns:controls="clr-namespace:artifact.desktop.controls;assembly=artifact.desktop.controls"
              DataContext="{Binding BannerViewModel}">
     <Border Grid.Row="1"
                 Background="White"
@@ -46,13 +46,19 @@
                                Margin="0,3,0,0" />
             </StackPanel>
 
-            <Button Grid.Column="2"
-                        Command="{Binding SelectFolderCommand}"
-                        Content="{Binding FolderButtonLabel}"
-                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                        Margin="0,0,12,0"
-                        Padding="12,0"
-                        FontSize="12" />
+            <controls:FolderDialogControl Grid.Column="2"
+                                          InitialDirectory="{Binding FolderPath}"
+                                          DialogTitle="Select a folder containing DICOM files"
+                                          EnableGatherFiles="False"
+                                          ShowSelectedFolderPath="False"
+                                          FolderSelectedCommand="{Binding LoadFolderCommand}"
+                                          SelectionFailedCommand="{Binding ReportFolderSelectionErrorCommand}"
+                                          ButtonContent="{Binding FolderButtonLabel}"
+                                          ButtonStyle="{StaticResource MaterialDesignOutlinedButton}"
+                                          IsEnabled="{Binding CanChangeFolder}"
+                                          Margin="0,0,12,0"
+                                          ButtonPadding="12,0"
+                                          FontSize="12" />
 
             <Button Grid.Column="3"
                         Command="{Binding DataContext.StartRecognitionCommand, RelativeSource={RelativeSource AncestorType={x:Type views:RecognitionView}}}"

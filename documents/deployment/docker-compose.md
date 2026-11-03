@@ -20,6 +20,7 @@ $env:CERTIFICATE_NAME = "localhost-artifact.pfx"
 $env:API_TLS_HOSTNAME = Read-Host "DNS hostname covered by the certificate SAN (not localhost)"
 # Office PC: replace the two assignments above / 办公室替换上面两项：
 # $env:CERTIFICATE_NAME = "localhost-doraemon.pfx"
+$env:API_TLS_HOSTNAME = "localhost-artifact"
 # $env:API_TLS_HOSTNAME = "localhost-doraemon"
 ```
 

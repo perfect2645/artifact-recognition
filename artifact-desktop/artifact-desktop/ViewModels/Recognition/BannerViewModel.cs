@@ -1,7 +1,7 @@
-﻿using artifact.desktop.Messaging.Local;
+﻿
+using artifact.desktop.Messaging.Local;
 using artifact.desktop.Services;
 using artifact.desktop.ViewModels.Base;
-using artifact.shared.data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -22,46 +22,41 @@ namespace artifact.desktop.ViewModels.Recognition
         private readonly ILogger<BannerViewModel> _logger = logger;
 
         [ObservableProperty] public partial string FolderPath { get; set; } = string.Empty;
-        private bool _isLoadingFiles;
-        public bool IsLoadingFiles
-        {
-            get => _isLoadingFiles;
-            private set
-            {
-                if (!SetProperty(ref _isLoadingFiles, value)) return;
-                Messenger.Send(new RecognitionFolderLoadingChangedMessage(value));
-            }
-        }
-        private bool _parentIsBusy;
+
+        [ObservableProperty]
+        private bool isLoadingFiles;
+        private bool parentIsBusy;
 
         public string FolderName => string.IsNullOrEmpty(FolderPath) ? "No folder selected" : new DirectoryInfo(FolderPath).Name;
         public string FolderDescription => string.IsNullOrEmpty(FolderPath) ? "Choose a folder containing .dcm files" : FolderPath;
         public string FolderButtonLabel => string.IsNullOrEmpty(FolderPath) ? "Select folder" : "Change folder";
-        public bool CanChangeFolder => !_parentIsBusy;
+        public bool CanChangeFolder => !parentIsBusy;
         partial void OnFolderPathChanged(string value)
         {
             OnPropertyChanged(nameof(FolderName)); OnPropertyChanged(nameof(FolderDescription)); OnPropertyChanged(nameof(FolderButtonLabel));
         }
-        [RelayCommand(CanExecute = nameof(CanChangeFolder))]
-        private async Task SelectFolderAsync(CancellationToken cancellationToken)
-        {
-            var path = _files.SelectFolder();
-            if (path is null) return;
+        partial void OnIsLoadingFilesChanged(bool value) =>
+            Messenger.Send(new RecognitionFolderLoadingChangedMessage(value));
 
-            Messenger.Send(new RecognitionFolderErrorChangedMessage(null));
-            IsLoadingFiles = true;
+        [RelayCommand(CanExecute = nameof(CanChangeFolder))]
+        private async Task LoadFolderAsync(string folderPath, CancellationToken cancellationToken)
+        {
+            if (IsLoadingFiles || !CanChangeFolder || string.IsNullOrWhiteSpace(folderPath)) return;
+
             try
             {
-                var items = await _files.LoadFilesAsync(path, cancellationToken);
-                FolderPath = path;
+                cancellationToken.ThrowIfCancellationRequested();
+                Messenger.Send(new RecognitionFolderErrorChangedMessage(null));
+                IsLoadingFiles = true;
+                var items = await _files.LoadFilesAsync(folderPath, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                FolderPath = folderPath;
                 Messenger.Send(new RecognitionFolderLoadedMessage(items));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Could not read the recognition folder.");
-                Messenger.Send(new RecognitionFolderErrorChangedMessage(
-                    $"Could not read this folder. Check its location and access permissions. {ex.Message}"));
+                ReportFolderSelectionError(ex);
             }
             finally
             {
@@ -69,14 +64,21 @@ namespace artifact.desktop.ViewModels.Recognition
             }
         }
 
+        [RelayCommand]
+        private void ReportFolderSelectionError(Exception exception)
+        {
+            _logger.LogError(exception, "Could not select or read the recognition folder.");
+            Messenger.Send(new RecognitionFolderErrorChangedMessage(
+                $"Could not read this folder. Check its location and access permissions. {exception.Message}"));
+        }
+
         #region Messener
 
         public void Receive(RecognitionBusyChangedMessage message)
         {
-            if (_parentIsBusy == message.Value) return;
-            _parentIsBusy = message.Value;
-            OnPropertyChanged(nameof(CanChangeFolder));
-            SelectFolderCommand.NotifyCanExecuteChanged();
+            if (parentIsBusy == message.Value) return;
+            parentIsBusy = message.Value;
+            LoadFolderCommand.NotifyCanExecuteChanged();
         }
 
         #endregion Messenger

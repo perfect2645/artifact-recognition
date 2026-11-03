@@ -1,0 +1,26 @@
+﻿<UserControl x:Class="artifact.desktop.controls.FolderDialogControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="ctrl">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVisibility" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Button Content="{Binding ButtonContent, ElementName=ctrl}"
+                Style="{Binding ButtonStyle, ElementName=ctrl}"
+                FontSize="{Binding FontSize, ElementName=ctrl}"
+                Padding="{Binding ButtonPadding, ElementName=ctrl}"
+                Command="{Binding OpenFolderDialogCommand, ElementName=ctrl}" />
+        <TextBlock Grid.Column="1"
+                   Text="{Binding SelectedFolderPath, ElementName=ctrl}"
+                   ToolTip="{Binding SelectedFolderPath, ElementName=ctrl}"
+                   Visibility="{Binding ShowSelectedFolderPath, ElementName=ctrl, Converter={StaticResource BoolVisibility}}"
+                   VerticalAlignment="Center"
+                   TextTrimming="CharacterEllipsis"
+                   Margin="10,0,0,0" />
+    </Grid>
+</UserControl>
