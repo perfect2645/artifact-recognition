@@ -50,6 +50,8 @@ class ArtifactWorker:
 
     def start(self) -> None:
         self.receiver.start()
+
+    def on_connected(self) -> None:
         if self.join_group_method:
             self.receiver.invoke(self.join_group_method, [self.group_name])
 
@@ -179,11 +181,15 @@ def main() -> int:
     def _on_message(event_name: str, payload: Any) -> None:
         worker.handle_message(event_name, payload)
 
+    def _on_connected() -> None:
+        worker.on_connected()
+        
     receiver = SignalRReceiver(
         hub_url=args.hub_url,
         events=[args.event_name],
         on_message=_on_message,
         access_token=args.access_token,
+        on_connected=_on_connected,
     )
     worker = ArtifactWorker(
         receiver=receiver,

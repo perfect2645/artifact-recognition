@@ -21,10 +21,12 @@ class SignalRReceiver:
 		events: Iterable[str],
 		on_message: Optional[Callable[[str, Any], None]] = None,
 		access_token: Optional[str] = None,
+		on_connected: Optional[Callable[[], None]] = None,
 	) -> None:
 		self.hub_url = hub_url
 		self.events = [event for event in events if event.strip()]
 		self.on_message = on_message or self._default_message_handler
+		self.on_connected = on_connected
 		self._stopping = False
 
 		options: dict[str, Any] = {}
@@ -49,6 +51,8 @@ class SignalRReceiver:
 
 		self.connection = builder.build()
 
+		self.connection.on_open(self._handle_connected)
+		self.connection.on_reconnect(self._handle_connected)
 		self.connection.on_open(lambda: LOGGER.info("Connected to hub: %s", self.hub_url))
 		self.connection.on_close(lambda: LOGGER.warning("Connection closed."))
 		self.connection.on_error(lambda error: LOGGER.error("SignalR error: %s", error))
@@ -59,6 +63,11 @@ class SignalRReceiver:
 		for event_name in self.events:
 			self.connection.on(event_name, self._build_event_handler(event_name))
 			LOGGER.info("Subscribed to event: %s", event_name)
+
+	def _handle_connected(self) -> None:
+		LOGGER.info("Connected to hub: %s", self.hub_url)
+		if self.on_connected is not None:
+			self.on_connected()
 
 	def _build_event_handler(self, event_name: str) -> Callable[[Any], None]:
 		def _handler(arguments: Any) -> None:
