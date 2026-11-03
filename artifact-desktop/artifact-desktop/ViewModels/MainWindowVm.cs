@@ -14,7 +14,7 @@ public partial class MainWindowVm : ObservableObject
     public IReadOnlyList<NavigationItem> NavigationItems { get; } =
         [
             new ("Recognition", PackIconKind.Image, typeof(RecognitionViewModel)),
-            new ("Single Image", PackIconKind.Camera, typeof(SingleImageVm)),
+            //new ("Single Image", PackIconKind.Camera, typeof(SingleImageVm)),
             new ("Settings", PackIconKind.Settings, typeof(SettingsViewModel))
         ];
 

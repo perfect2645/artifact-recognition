@@ -41,7 +41,7 @@ namespace artifact.desktop.ViewModels.Recognition
         [RelayCommand(CanExecute = nameof(CanChangeFolder))]
         private async Task LoadFolderAsync(string folderPath, CancellationToken cancellationToken)
         {
-            if (IsLoadingFiles || !CanChangeFolder || string.IsNullOrWhiteSpace(folderPath)) return;
+            if (!CanChangeFolder || string.IsNullOrWhiteSpace(folderPath)) return;
 
             try
             {
