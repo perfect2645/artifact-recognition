@@ -54,6 +54,7 @@ class ArtifactWorker:
     def on_connected(self) -> None:
         if self.join_group_method:
             self.receiver.invoke(self.join_group_method, [self.group_name])
+            LOGGER.info("Joined SignalR group: %s", self.group_name)
 
     def stop(self) -> None:
         self.receiver.stop()

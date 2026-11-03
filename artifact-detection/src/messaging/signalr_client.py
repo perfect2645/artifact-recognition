@@ -53,7 +53,6 @@ class SignalRReceiver:
 
 		self.connection.on_open(self._handle_connected)
 		self.connection.on_reconnect(self._handle_connected)
-		self.connection.on_open(lambda: LOGGER.info("Connected to hub: %s", self.hub_url))
 		self.connection.on_close(lambda: LOGGER.warning("Connection closed."))
 		self.connection.on_error(lambda error: LOGGER.error("SignalR error: %s", error))
 
