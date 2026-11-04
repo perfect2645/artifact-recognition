@@ -21,7 +21,14 @@ namespace artifact.desktop.ViewModels.Recognition
         private readonly IRecognitionFileService _files = files;
         private readonly ILogger<BannerViewModel> _logger = logger;
 
-        [ObservableProperty] public partial string FolderPath { get; set; } = string.Empty;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(FolderName))]
+        [NotifyPropertyChangedFor(nameof(FolderDescription))]
+        [NotifyPropertyChangedFor(nameof(FolderButtonLabel))]
+        public partial string FolderPath { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        private string filePattern = "*.dcm";
 
         [ObservableProperty]
         private bool isLoadingFiles;
@@ -31,10 +38,6 @@ namespace artifact.desktop.ViewModels.Recognition
         public string FolderDescription => string.IsNullOrEmpty(FolderPath) ? "Choose a folder containing .dcm files" : FolderPath;
         public string FolderButtonLabel => string.IsNullOrEmpty(FolderPath) ? "Select folder" : "Change folder";
         public bool CanChangeFolder => !parentIsBusy;
-        partial void OnFolderPathChanged(string value)
-        {
-            OnPropertyChanged(nameof(FolderName)); OnPropertyChanged(nameof(FolderDescription)); OnPropertyChanged(nameof(FolderButtonLabel));
-        }
         partial void OnIsLoadingFilesChanged(bool value) =>
             Messenger.Send(new RecognitionFolderLoadingChangedMessage(value));
 
@@ -48,7 +51,7 @@ namespace artifact.desktop.ViewModels.Recognition
                 cancellationToken.ThrowIfCancellationRequested();
                 Messenger.Send(new RecognitionFolderErrorChangedMessage(null));
                 IsLoadingFiles = true;
-                var items = await _files.LoadFilesAsync(folderPath, cancellationToken);
+                var items = await _files.LoadFilesAsync(folderPath, FilePattern, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 FolderPath = folderPath;
                 Messenger.Send(new RecognitionFolderLoadedMessage(items));

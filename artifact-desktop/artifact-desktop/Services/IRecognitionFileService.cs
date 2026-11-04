@@ -5,7 +5,7 @@ namespace artifact.desktop.Services
 {
     public interface IRecognitionFileService
     {
-        Task<IReadOnlyList<RecognitionItemUi>> LoadFilesAsync(string folder, CancellationToken cancellationToken);
+        Task<IReadOnlyList<RecognitionItemUi>> LoadFilesAsync(string folder, string filePattern, CancellationToken cancellationToken);
         Task<BitmapSource?> LoadPreviewAsync(string path, CancellationToken cancellationToken);
         void OpenFile(string path);
         void ShowInFolder(string path);
