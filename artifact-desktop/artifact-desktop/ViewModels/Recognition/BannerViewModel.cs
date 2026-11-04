@@ -15,12 +15,9 @@ namespace artifact.desktop.ViewModels.Recognition
     [Register(ServiceType = typeof(BannerViewModel), Lifetime = Lifetime.Singleton)]
     public partial class BannerViewModel(
         IMessenger messenger,
-        IRecognitionFileService files,
+        IRecognitionFileService fileService,
         ILogger<BannerViewModel> logger) : ObservableRecipientVm(messenger), IRecipient<RecognitionBusyChangedMessage>
     {
-        private readonly IRecognitionFileService _files = files;
-        private readonly ILogger<BannerViewModel> _logger = logger;
-
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(FolderName))]
         [NotifyPropertyChangedFor(nameof(FolderDescription))]
@@ -51,7 +48,7 @@ namespace artifact.desktop.ViewModels.Recognition
                 cancellationToken.ThrowIfCancellationRequested();
                 Messenger.Send(new RecognitionFolderErrorChangedMessage(null));
                 IsLoadingFiles = true;
-                var items = await _files.LoadFilesAsync(folderPath, FilePattern, cancellationToken);
+                var items = await fileService.LoadFilesAsync(folderPath, FilePattern, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 FolderPath = folderPath;
                 Messenger.Send(new RecognitionFolderLoadedMessage(items));
@@ -70,7 +67,7 @@ namespace artifact.desktop.ViewModels.Recognition
         [RelayCommand]
         private void ReportFolderSelectionError(Exception exception)
         {
-            _logger.LogError(exception, "Could not select or read the recognition folder.");
+            logger.LogError(exception, "Could not select or read the recognition folder.");
             Messenger.Send(new RecognitionFolderErrorChangedMessage(
                 $"Could not read this folder. Check its location and access permissions. {exception.Message}"));
         }
