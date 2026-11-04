@@ -1,0 +1,40 @@
+name: artifact-recognition
+
+include:
+  - ..\artifact-service-domain\devops\docker\docker-compose.yaml
+
+services:
+  artifact-worker:
+    image: "artifact-worker:${WORKER_IMAGE_TAG:?Set WORKER_IMAGE_TAG}"
+    container_name: artifact-worker
+
+    depends_on:
+      - artifact-api
+
+    environment:
+      SSL_CERT_FILE: /trust/api-public.pem
+      REQUESTS_CA_BUNDLE: /trust/api-public.pem
+
+    command:
+      - --hub-url
+      - "https://${API_TLS_HOSTNAME}:8081/hubs/signalr"
+      - --result-url
+      - "https://${API_TLS_HOSTNAME}:8081/api/artifact"
+      - --group-name
+      - recognition-model
+      - --event-name
+      - recognition
+
+    volumes:
+      - type: bind
+        source: "${API_TRUST_FILE:?Set API_TRUST_FILE}"
+        target: /trust/api-public.pem
+        read_only: true
+        bind:
+          create_host_path: false
+
+      - type: bind
+        source: "${WORKER_DATA_PATH:?Set WORKER_DATA_PATH}"
+        target: /data
+        bind:
+          create_host_path: false

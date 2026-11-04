@@ -19,6 +19,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.Client.perfect264
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "artifact.desktop.controls", "artifact.desktop.controls\artifact.desktop.controls.csproj", "{88A3AD0D-5648-492C-ABD9-1C5AA67733C4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "documents", "documents", "{B0A2DE96-0ACE-49B3-ADD0-1965F34FAC90}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "devops", "devops", "{018FE88D-EAF4-44DF-8D12-08BBD02DFC6C}"
+	ProjectSection(SolutionItems) = preProject
+		..\documents\deployment\docker-compose.md = ..\documents\deployment\docker-compose.md
+		..\documents\deployment\docker-image.md = ..\documents\deployment\docker-image.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +68,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{018FE88D-EAF4-44DF-8D12-08BBD02DFC6C} = {B0A2DE96-0ACE-49B3-ADD0-1965F34FAC90}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7BE0A1EF-73EF-4152-8FB9-8CCC873435DF}

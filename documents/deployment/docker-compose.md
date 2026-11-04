@@ -17,10 +17,57 @@ $composeFile = Join-Path $repoPath 'artifact-service-domain\devops\docker\docker
 Set-Location (Join-Path $repoPath 'artifact-service-domain')
 
 $env:CERTIFICATE_NAME = "localhost-artifact.pfx"
-$env:API_TLS_HOSTNAME = Read-Host "DNS hostname covered by the certificate SAN (not localhost)"
-# Office PC: replace the two assignments above / 办公室替换上面两项：
+# Office PC: use this instead / 办公室电脑改用：
 # $env:CERTIFICATE_NAME = "localhost-doraemon.pfx"
-$env:API_TLS_HOSTNAME = "localhost-artifact"
+```
+
+### Check the certificate's DNS names / 查看证书中的 DNS 名称
+
+Inspect the server leaf certificate selected above, not the root CA. Enter the PFX password locally if prompted; do not share the password or private key.
+检查上面选择的服务端叶子证书，不是根 CA。如果提示密码，仅在本机输入，不要分享密码或私钥。
+
+```powershell
+$certPath = Join-Path $repoPath "artifact-service-domain\Configurations\certs\$env:CERTIFICATE_NAME"
+$cert = Get-PfxCertificate -FilePath $certPath -ErrorAction Stop
+
+$cert.Extensions |
+    Where-Object { $_.Oid.Value -eq '2.5.29.17' } |
+    ForEach-Object { $_.Format($true) }
+
+$cert.Dispose()
+```
+
+Look for `DNS Name=...` in the SAN output. For example, the office certificate includes:
+查看 SAN 输出中的 `DNS Name=...`。例如，办公室证书包含：
+
+```text
+DNS Name=localhost
+DNS Name=localhost-doraemon
+```
+
+家里电脑证书包含：
+
+```text
+DNS Name=localhost
+DNS Name=localhost-artifact
+IP Address=127.0.0.1
+IP Address=192.168.31.122
+```
+
+Choose a non-`localhost` DNS name covered by your actual certificate, not a filename, IP entry, or URL. If there is no SAN or only `localhost`, stop here; reissue the certificate with a suitable DNS name before using an inter-container alias.
+选择实际证书支持的非 `localhost` DNS 名称，不是文件名、IP 条目或 URL。如果没有 SAN 或只有 `localhost`，先停在这里；需重新签发包含合适 DNS 名称的证书，再使用容器间别名。
+
+### Set the network alias / 设置网络别名
+
+Use the prompt below, or replace it with one verified fixed assignment. Do not execute both, or the later assignment will overwrite your input.
+使用下面的交互输入，或替换成一个已确认的固定赋值。不要同时执行，否则后面的赋值会覆盖输入。
+
+```powershell
+$env:API_TLS_HOSTNAME = Read-Host "DNS hostname covered by the certificate SAN (not localhost)"
+
+# Home example: only if its SAN covers this name / 家里示例，仅当 SAN 支持此名称：
+# $env:API_TLS_HOSTNAME = "localhost-artifact"
+# Office PC / 办公室电脑：
 # $env:API_TLS_HOSTNAME = "localhost-doraemon"
 ```
 
@@ -70,17 +117,17 @@ Expected: API `Up`, environment `Development`, Windows `7092` → container HTTP
 ## 4. Verify access / 验证访问
 
 ```powershell
-curl.exe -i [https://localhost:7092/api/recognition](https://localhost:7092/api/recognition)
+curl.exe -i [[https://localhost:7092/api/recognition](https://localhost:7092/api/recognition)](https://localhost:7092/api/recognition)
 ```
 
-Expected: `405` with `Allow: POST`, because this request uses GET. Swagger: [[https://localhost:7092/swagger](https://localhost:7092/swagger)](https://localhost:7092/swagger).
-预期返回 `405` 且包含 `Allow: POST`，因为这里使用 GET。Swagger：[[https://localhost:7092/swagger](https://localhost:7092/swagger)](https://localhost:7092/swagger)。
+Expected: `405` with `Allow: POST`, because this request uses GET. Swagger: [[[https://localhost:7092/swagger](https://localhost:7092/swagger)](https://localhost:7092/swagger)](https://localhost:7092/swagger).
+预期返回 `405` 且包含 `Allow: POST`，因为这里使用 GET。Swagger：[[[https://localhost:7092/swagger](https://localhost:7092/swagger)](https://localhost:7092/swagger)](https://localhost:7092/swagger)。
 
 For the local development CA only, if Windows Schannel reports unavailable revocation information:
 仅针对本地开发 CA，如果 Windows Schannel 报吊销信息不可用：
 
 ```powershell
-curl.exe -i --ssl-revoke-best-effort [https://localhost:7092/api/recognition](https://localhost:7092/api/recognition)
+curl.exe -i --ssl-revoke-best-effort [[https://localhost:7092/api/recognition](https://localhost:7092/api/recognition)](https://localhost:7092/api/recognition)
 ```
 
 This relaxes missing/offline revocation checks, not chain or hostname validation. It is not a production PKI default; do not replace it with `-k`.
