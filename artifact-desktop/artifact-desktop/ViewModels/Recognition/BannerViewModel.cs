@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using System.IO;
 using Utils.Ioc;
+using static MaterialDesignThemes.Wpf.Theme.ToolBar;
 
 namespace artifact.desktop.ViewModels.Recognition
 {
@@ -26,7 +27,6 @@ namespace artifact.desktop.ViewModels.Recognition
 
         [ObservableProperty]
         private string filePattern = "*.dcm";
-
         [ObservableProperty]
         private bool isLoadingFiles;
         private bool parentIsBusy;
@@ -38,20 +38,16 @@ namespace artifact.desktop.ViewModels.Recognition
         partial void OnIsLoadingFilesChanged(bool value) =>
             Messenger.Send(new RecognitionFolderLoadingChangedMessage(value));
 
-        [RelayCommand(CanExecute = nameof(CanChangeFolder))]
+        [RelayCommand(CanExecute = nameof(CanChangeFolder), IncludeCancelCommand = true)]
         private async Task LoadFolderAsync(string folderPath, CancellationToken cancellationToken)
         {
-            if (!CanChangeFolder || string.IsNullOrWhiteSpace(folderPath)) return;
+            if (string.IsNullOrWhiteSpace(folderPath)) return;
 
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                Messenger.Send(new RecognitionFolderErrorChangedMessage(null));
-                IsLoadingFiles = true;
                 var items = await fileService.LoadFilesAsync(folderPath, FilePattern, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
                 FolderPath = folderPath;
-                Messenger.Send(new RecognitionFolderLoadedMessage(items));
+                messenger.Send(new RecognitionFolderLoadedMessage(items));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
             catch (Exception ex)
@@ -60,7 +56,7 @@ namespace artifact.desktop.ViewModels.Recognition
             }
             finally
             {
-                IsLoadingFiles = false;
+                messenger.Send(new RecognitionFolderLoadingChangedMessage(false));
             }
         }
 
@@ -68,7 +64,7 @@ namespace artifact.desktop.ViewModels.Recognition
         private void ReportFolderSelectionError(Exception exception)
         {
             logger.LogError(exception, "Could not select or read the recognition folder.");
-            Messenger.Send(new RecognitionFolderErrorChangedMessage(
+            messenger.Send(new RecognitionFolderErrorChangedMessage(
                 $"Could not read this folder. Check its location and access permissions. {exception.Message}"));
         }
 
