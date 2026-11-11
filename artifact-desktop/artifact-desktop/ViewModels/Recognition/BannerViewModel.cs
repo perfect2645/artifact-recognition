@@ -8,7 +8,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using System.IO;
 using Utils.Ioc;
-using static MaterialDesignThemes.Wpf.Theme.ToolBar;
 
 namespace artifact.desktop.ViewModels.Recognition
 {
@@ -45,6 +44,7 @@ namespace artifact.desktop.ViewModels.Recognition
 
             try
             {
+                IsLoadingFiles = true;
                 var items = await fileService.LoadFilesAsync(folderPath, FilePattern, cancellationToken);
                 FolderPath = folderPath;
                 messenger.Send(new RecognitionFolderLoadedMessage(items));
@@ -56,7 +56,7 @@ namespace artifact.desktop.ViewModels.Recognition
             }
             finally
             {
-                messenger.Send(new RecognitionFolderLoadingChangedMessage(false));
+                IsLoadingFiles = false;
             }
         }
 

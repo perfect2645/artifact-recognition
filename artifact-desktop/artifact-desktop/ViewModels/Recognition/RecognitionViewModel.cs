@@ -272,11 +272,7 @@ public partial class RecognitionViewModel : ObservableRecipientVm,
             RecognitionFilter.Failed => FailedCount,
             _ => TotalCount
         };
-        foreach (var name in new[] { nameof(HasFiles), nameof(IsBatchActive), nameof(IsBusy),
-        nameof(TotalCount), nameof(CompletedCount), nameof(ArtifactCount), nameof(NoArtifactCount), nameof(FailedCount),
-        nameof(PendingCount), nameof(ActiveCount), nameof(UnknownCount), nameof(CancelledCount), nameof(ProgressPercent),
-        nameof(ProgressLabel), nameof(FileCountLabel), nameof(StartButtonLabel), nameof(BatchTitle), nameof(BatchDescription) })
-            OnPropertyChanged(name);
+        OnPropertyChanged(string.Empty);
         StartRecognitionCommand.NotifyCanExecuteChanged();
         RetrySelectedCommand.NotifyCanExecuteChanged();
         OpenOutputCommand.NotifyCanExecuteChanged();

@@ -1,7 +1,7 @@
 name: artifact-recognition
 
 include:
-  - ..\artifact-service-domain\devops\docker\docker-compose.yaml
+  - ..\..\artifact-service-domain\devops\docker\docker-compose.yaml
 
 services:
   artifact-worker:
