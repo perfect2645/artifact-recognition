@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <Folder Include="Configurations\certs\" />
-    <Folder Include="Models\" />
   </ItemGroup>
 
   <ItemGroup>

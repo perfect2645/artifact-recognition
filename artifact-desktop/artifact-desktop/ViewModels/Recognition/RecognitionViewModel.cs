@@ -159,6 +159,7 @@ public partial class RecognitionViewModel : ObservableRecipientVm,
         {
             if (item.Id is { } oldId) _attempts.Remove(oldId);
             // ArtifactMessage has no task ID; fresh IDs isolate delayed messages from previous attempts.
+            // TODO id should be generated during the upload process
             item.Id = Guid.NewGuid();
             item.OutputPath = null;
             item.ArtifactStatus = ArtifactStatus.Unknown;

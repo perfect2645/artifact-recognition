@@ -1,4 +1,5 @@
-﻿using NetUtils.Aspnet.Configurations;
+﻿using artifact.service.domain.Configurations.Files;
+using NetUtils.Aspnet.Configurations;
 
 namespace artifact.service.domain.Configurations.Services
 {
@@ -25,8 +26,8 @@ namespace artifact.service.domain.Configurations.Services
 
             private void Configurations()
             {
-                //builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection(DomainConstants.RabbitMqSettings));
                 builder.Services.Configure<SignalRSettings>(builder.Configuration.GetSection(Constants.SignalRSettings));
+                builder.Services.Configure<FileStorage>(builder.Configuration.GetSection(Constants.FIleStorage));
             }
         }
     }

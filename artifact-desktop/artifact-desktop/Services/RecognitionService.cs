@@ -12,6 +12,9 @@ namespace artifact.desktop.Services
     {
         public async ValueTask<RecognitionHttpResponse> SubmitRecognitionAsync(RecognitionHttpRequest request, CancellationToken cancellationToken)
         {
+            // TODO upload selected dicom files by calling domain service
+
+            // TODO update all the item id from the upload results
             var content = new ArtifactHttpContent(request);
 
             var result = await artifactHttpClient.SubmitRecognitionAsync(content, cancellationToken);
