@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\CSharp\Laboratory\NetUtils\NetUtils.csproj" />
+    <ProjectReference Include="..\..\..\CSharp\Laboratory\Utils\Utils.csproj" />
     <ProjectReference Include="..\artifact-desktop\artifact.shared\artifact.shared.csproj" />
   </ItemGroup>
 
